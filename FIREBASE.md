@@ -125,6 +125,18 @@ documento **ese UID**, con estos campos:
 | `nombre` | string | `Mica` |
 | `rol` | string | `admin` |
 
+Tres cosas que hacen fallar este paso, y las cuatro se ven igual desde afuera
+("no tenés permiso"):
+
+- El **ID del documento** tiene que ser el UID, no el nombre de usuario.
+  Copialo de la lista de Authentication, no lo tipees.
+- El campo se llama `rol`, en minúscula y sin acento.
+- El valor es `admin`, en minúscula y sin espacios alrededor.
+- La colección se llama `usuarios`, en minúscula.
+
+Si algo de eso falla, la pantalla `#usuarios` te dice cuál de las cuatro es y
+te muestra tu UID listo para copiar.
+
 El rol vive acá y no en el navegador. Alguien puede alterar el programa que
 corre en su máquina; no puede alterar este documento, porque las reglas solo
 dejan escribirlo a un administrador.

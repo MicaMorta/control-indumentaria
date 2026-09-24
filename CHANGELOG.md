@@ -1,5 +1,12 @@
 # Historial de versiones
 
+## 1.1.4
+
+- Cuando el usuario no queda como administrador, `#usuarios` explica cuál de
+  las cuatro causas es: falta el documento de perfil, tiene otro id, el rol
+  dice otra cosa, o las reglas no dejaron leerlo. Muestra el UID listo para
+  copiar y los pasos para crearlo.
+
 ## 1.1.3
 
 - La pantalla `#usuarios` muestra la dirección exacta que se pidió, el código

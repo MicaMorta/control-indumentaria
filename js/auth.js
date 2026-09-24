@@ -86,12 +86,26 @@ async function entrarConFirebase(usuario, pin){
   }
 }
 
+/* Por qué el rol quedó como quedó. Sin esto, un perfil faltante y unas reglas
+   que bloquean la lectura se ven exactamente igual: como "vendedor". */
+let diagPerfil = { uid: null, existe: null, rol: null, error: null };
+
+export const diagnosticoPerfil = () => diagPerfil;
+
 async function leerPerfil(db, api, uid){
+  diagPerfil = { uid, existe: null, rol: null, error: null };
   try{
     const ref = api.db.doc(db, 'usuarios', uid);
     const snap = await api.db.getDoc(ref);
-    return snap.exists() ? snap.data() : null;
-  }catch(e){ return null; }
+    diagPerfil.existe = snap.exists();
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    diagPerfil.rol = d.rol ?? null;
+    return d;
+  }catch(e){
+    diagPerfil.error = (e && e.code) || (e && e.message) || 'error';
+    return null;
+  }
 }
 
 /* Firebase devuelve códigos distintos según el caso, pero contarle a quien

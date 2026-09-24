@@ -12,7 +12,7 @@
 
 import { $, esc, fechaLarga, avisar, confirmar } from '../utilidades.js';
 import { crearUsuario, listarUsuarios, cambiarMiPin, esAdmin, sesionActiva,
-         normalizarUsuario, pinValido } from '../auth.js';
+         normalizarUsuario, pinValido, diagnosticoPerfil } from '../auth.js';
 import { disponible, porQueNo, codigoDeFalla, detalleDeFalla } from '../firebase.js';
 import { LARGO_PIN } from '../config.js';
 import { bus } from '../estado.js';
@@ -62,10 +62,60 @@ export async function vistaUsuarios(){
   if (!esAdmin()){
     /* Sin rol de administrador no se muestra ni el formulario. Aunque alguien
        lo forzara, las Security Rules rechazan la escritura. */
-    $('#hoja').innerHTML = `<section class="tarjeta"><div class="vacio">
-      <h3>No tenés permiso</h3>
-      <p>Esta pantalla es para administradores.</p>
-    </div></section>`;
+    const d = diagnosticoPerfil();
+    const s = sesionActiva() || {};
+
+    /* El rol no sale de Firebase Auth: sale del documento usuarios/{uid} en
+       Firestore. Que falte, que tenga otro id o que las reglas bloqueen su
+       lectura se ven todos igual desde afuera. Acá se separan. */
+    const causa =
+      d.error ? `Las reglas no me dejaron leer tu perfil (<code>${esc(d.error)}</code>).
+                 Revisá que <code>firestore.rules</code> esté publicado.`
+      : d.existe === false ? `No existe el documento <code>usuarios/${esc(d.uid || '')}</code>.
+                 Es el paso 5b de FIREBASE.md: hay que crearlo a mano una sola vez.`
+      : d.rol && d.rol !== 'admin' ? `Tu perfil existe pero tiene
+                 <code>rol: "${esc(d.rol)}"</code>. Para entrar acá tiene que decir
+                 <code>admin</code>, en minúscula y sin espacios.`
+      : `Tu perfil existe pero no tiene el campo <code>rol</code>.`;
+
+    $('#hoja').innerHTML = `<section class="tarjeta">
+      <div class="tarjeta-tope"><h3>Todavía no sos administrador</h3></div>
+      <div class="tarjeta-cuerpo">
+        <p class="error-caja" style="margin-bottom:14px">${causa}</p>
+
+        <p style="font-size:13.5px;color:var(--tinta-2);margin:0 0 12px;line-height:1.6">
+          Entraste bien: la conexión con Firebase funciona y tu usuario existe. Lo que
+          falta es el documento de Firestore que dice qué permisos tenés. El rol vive
+          ahí y no en el navegador, justamente para que nadie pueda dárselo solo.</p>
+
+        <div class="diagnostico">
+          <div><span>Tu usuario</span><code>${esc(s.usuario || '—')}</code></div>
+          <div><span>Tu UID</span><code>${esc(d.uid || s.uid || '—')}</code></div>
+          <div><span>¿Existe el perfil?</span>
+            <code>${d.error ? 'no se pudo leer' : d.existe ? 'sí' : 'no'}</code></div>
+          <div><span>Rol leído</span><code>${esc(d.rol ?? '—')}</code></div>
+        </div>
+
+        <details style="font-size:13.5px;color:var(--tinta-2);line-height:1.6;margin-top:14px">
+          <summary style="cursor:pointer;font-weight:500;color:var(--tinta)">
+            Cómo crearlo, paso a paso</summary>
+          <ol style="margin:10px 0 0;padding-left:20px">
+            <li>Entrá a la consola de Firebase, <b>Firestore Database</b>.</li>
+            <li>Si no existe, creá la colección <code>usuarios</code>.</li>
+            <li>Agregá un documento con <b>ID exactamente</b>
+                <code>${esc(d.uid || s.uid || '')}</code> (copialo de arriba, no lo tipees).</li>
+            <li>Campos, los tres de tipo <i>string</i>:
+              <code>usuario</code> = <code>${esc(s.usuario || 'mica')}</code>,
+              <code>nombre</code> = como quieras que aparezca,
+              <code>rol</code> = <code>admin</code>.</li>
+            <li>Guardá, cerrá sesión acá y volvé a entrar.</li>
+          </ol>
+          <p style="margin:10px 0 0;color:var(--tinta-3)">
+            Es la única vez que hay que hacerlo a mano. Los demás usuarios se crean
+            desde esta pantalla.</p>
+        </details>
+      </div>
+    </section>`;
     return;
   }
 
