@@ -50,8 +50,25 @@ publicamos en el paso 6.
 *Configuración del proyecto → Tus apps → Web (`</>`)*. Registrá la app y copiá
 el objeto `firebaseConfig`.
 
-Copiá `datos/firebase.json.ejemplo` como `datos/firebase.json` y pegá los
-valores.
+Lo que da la consola es **JavaScript**, no JSON:
+
+```javascript
+const firebaseConfig = {
+  apiKey: "AIza...",
+  projectId: "tu-proyecto"
+};
+```
+
+JSON necesita comillas en cada nombre de campo, sin `const` y sin punto y coma.
+Para no hacerlo a mano:
+
+```bash
+node herramientas/firebase-config.mjs        # pegás, Ctrl+D, y queda el archivo
+node herramientas/firebase-config.mjs --verificar   # revisa el que ya tenés
+```
+
+Pegar el fragmento tal cual es el error más común acá. La aplicación lo
+reconoce y te lo dice con nombre propio.
 
 > Estos datos **son públicos por diseño**. Viajan en el código que corre en el
 > navegador y cualquiera puede verlos. No son una contraseña: lo que protege la

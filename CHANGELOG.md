@@ -1,5 +1,12 @@
 # Historial de versiones
 
+## 1.1.2
+
+- La aplicación distingue el fragmento de JavaScript de la consola de Firebase
+  de un JSON roto, y dice cómo convertirlo.
+- `herramientas/firebase-config.mjs` convierte ese fragmento en JSON válido,
+  y con `--verificar` revisa el archivo existente.
+
 ## 1.1.1
 
 - La aplicación ahora dice **por qué** no pudo conectar con Firebase, en la

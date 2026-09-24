@@ -42,7 +42,10 @@ const fake = crearFirebaseFalso();
 const CFG = {apiKey:'AIza',projectId:'p'};
 
 await probar('archivo ausente', ()=>new Response('',{status:404}), fake.sdk, 'sin-archivo');
-await probar('JSON roto', ()=>new Response('{roto',{status:200}), fake.sdk, 'json-invalido');
+await probar('JSON roto', ()=>new Response('{"a":,}',{status:200}), fake.sdk, 'json-invalido');
+await probar('fragmento de JavaScript pegado tal cual',
+  ()=>new Response('const firebaseConfig = {\n  apiKey: "x",\n  projectId: "p"\n};',{status:200}),
+  fake.sdk, 'config-javascript');
 await probar('credenciales incompletas', ()=>new Response(JSON.stringify({apiKey:'x'}),{status:200}), fake.sdk, 'credenciales-incompletas');
 await probar('SDK inalcanzable', ()=>new Response(JSON.stringify(CFG),{status:200}), null, 'sdk-bloqueado');
 await probar('todo bien', ()=>new Response(JSON.stringify(CFG),{status:200}), fake.sdk, null);

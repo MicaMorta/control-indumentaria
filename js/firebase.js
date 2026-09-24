@@ -25,6 +25,8 @@ const MOTIVOS = {
     'datos/firebase.json existe pero le faltan apiKey o projectId. Copiá de nuevo el objeto firebaseConfig completo desde la consola de Firebase.',
   'json-invalido':
     'datos/firebase.json no es un JSON válido. Revisá que no haya quedado una coma de más o comillas sin cerrar.',
+  'config-javascript':
+    'datos/firebase.json tiene el fragmento de JavaScript que copiaste de la consola de Firebase, no JSON. Hay que sacarle "const firebaseConfig =" y el punto y coma final, y ponerle comillas a cada nombre de campo. Podés convertirlo solo con: node herramientas/firebase-config.mjs',
   'sdk-bloqueado':
     'No se pudo descargar el SDK de Firebase. Puede ser falta de internet, o que estés abriendo el archivo con doble clic o dentro de una vista previa que bloquea scripts externos. Hace falta servir el sitio por http://localhost o por https.',
   'error':
@@ -43,10 +45,16 @@ export async function iniciarFirebase(){
     }
     if (!r.ok) throw Object.assign(new Error('sin-archivo'), { motivo: 'sin-archivo' });
 
+    /* Se lee como texto y se parsea a mano para poder mirar qué vino y dar un
+       diagnóstico útil. El error más común es pegar el fragmento de
+       JavaScript que muestra la consola de Firebase, que no es JSON. */
+    const crudo = await r.text();
     try{
-      config = await r.json();
+      config = JSON.parse(crudo);
     }catch(e){
-      throw Object.assign(new Error('json-invalido'), { motivo: 'json-invalido' });
+      const pareceJS = /\b(const|let|var|export)\b|firebaseConfig|^\s*\{\s*[A-Za-z_$][\w$]*\s*:/m.test(crudo);
+      const codigo = pareceJS ? 'config-javascript' : 'json-invalido';
+      throw Object.assign(new Error(codigo), { motivo: codigo });
     }
     if (!config.projectId || !config.apiKey)
       throw Object.assign(new Error('incompletas'), { motivo: 'credenciales-incompletas' });
