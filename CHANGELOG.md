@@ -1,5 +1,13 @@
 # Historial de versiones
 
+## 1.1.3
+
+- La pantalla `#usuarios` muestra la dirección exacta que se pidió, el código
+  HTTP que respondió y los primeros caracteres de lo que vino. Con eso el
+  diagnóstico se cierra sin adivinar.
+- Motivo nuevo: el servidor devolviendo `index.html` en lugar del archivo, que
+  es lo que pasa con la reescritura de aplicación de una sola página.
+
 ## 1.1.2
 
 - La aplicación distingue el fragmento de JavaScript de la consola de Firebase

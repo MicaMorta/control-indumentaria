@@ -13,7 +13,7 @@
 import { $, esc, fechaLarga, avisar, confirmar } from '../utilidades.js';
 import { crearUsuario, listarUsuarios, cambiarMiPin, esAdmin, sesionActiva,
          normalizarUsuario, pinValido } from '../auth.js';
-import { disponible, porQueNo, codigoDeFalla } from '../firebase.js';
+import { disponible, porQueNo, codigoDeFalla, detalleDeFalla } from '../firebase.js';
 import { LARGO_PIN } from '../config.js';
 import { bus } from '../estado.js';
 
@@ -44,8 +44,15 @@ export async function vistaUsuarios(){
                 Hace falta <code>http://localhost</code> o <code>https</code>.</li>
             <li>Revisá la consola del navegador por errores de red bloqueada.</li>
           </ol>
-          <p style="margin:10px 0 0;color:var(--tinta-3)">
-            Código interno: <code>${esc(codigoDeFalla() || 'desconocido')}</code></p>
+          <div class="diagnostico">
+            <div><span>Código</span><code>${esc(codigoDeFalla() || 'desconocido')}</code></div>
+            <div><span>Dirección pedida</span>
+              <code>${esc((detalleDeFalla() || {}).direccion || '—')}</code></div>
+            <div><span>Respondió</span>
+              <code>${esc(String((detalleDeFalla() || {}).estado ?? 'no respondió'))}</code></div>
+            <div><span>Primeros caracteres</span>
+              <code>${esc((detalleDeFalla() || {}).vino || '—')}</code></div>
+          </div>
         </details>
       </div>
     </section>`;

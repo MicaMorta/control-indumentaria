@@ -627,3 +627,16 @@ tbody tr:hover{ background:var(--superficie-2) }
   border-radius:var(--r-ch); padding:9px 12px; line-height:1.45;
 }
 .error-caja[hidden]{ display:none }
+
+/* Detalle técnico de por qué no conectó con Firebase. */
+.diagnostico{
+  margin-top:12px; display:grid; gap:7px;
+  background:var(--superficie-2); border:1px solid var(--linea);
+  border-radius:var(--r-ch); padding:11px 13px; font-size:12.5px;
+}
+.diagnostico div{ display:grid; gap:2px }
+.diagnostico span{ color:var(--tinta-3); font-weight:500 }
+.diagnostico code{
+  color:var(--tinta); word-break:break-all; line-height:1.4;
+  font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;
+}
