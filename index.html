@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Control de stock y caja</title>
+<meta name="description" content="Control de stock, ventas y caja para un local de indumentaria.">
+<meta name="theme-color" content="#0F6E6A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css?v=2">
+</head>
+<body>
+
+<!-- ===================== INGRESO ===================== -->
+<div class="acceso" id="ingreso">
+  <div class="acceso-caja">
+    <h1>Control de stock</h1>
+    <p>Ingresá para ver tu negocio.</p>
+    <div style="display:grid;gap:13px">
+      <label class="campo"><span>Usuario</span>
+        <input type="text" id="ing-usuario" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
+      <label class="campo"><span>Contraseña</span>
+        <input type="password" id="ing-clave" autocomplete="current-password"></label>
+      <p id="ing-error" hidden
+         style="margin:0;font-size:13.5px;color:var(--egreso);background:var(--egreso-suave);
+                border-radius:var(--r-ch);padding:9px 12px"></p>
+      <button class="btn primario" id="ing-entrar" style="width:100%;margin-top:3px">Entrar</button>
+    </div>
+    <p class="acceso-nota">
+      El ingreso se valida en este mismo navegador contra un archivo del sitio. Alcanza para que
+      no entre cualquiera, pero no es seguridad real: en producción va Firebase Authentication.
+    </p>
+  </div>
+</div>
+
+<!-- ===================== APLICACIÓN ===================== -->
+<div class="app" id="app" hidden>
+
+  <aside class="rail">
+    <div class="rail-tope">
+      <h2>Control de stock</h2>
+      <span id="rail-fecha"></span>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button data-vista="panel" aria-current="true">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>Panel</span></button>
+
+      <button data-vista="vender">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></svg>
+        <span>Vender</span></button>
+
+      <button data-vista="productos">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3.5 12 6l3.5-2.5 4 2-1.6 4 1.1.6V20H5v-9.9l1.1-.6-1.6-4z"/></svg>
+        <span>Productos</span><span class="marca-nav" id="marca-stock" hidden>0</span></button>
+
+      <button data-vista="pedidos">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 7l2-4h14l2 4M9 11h6"/></svg>
+        <span>Pedidos</span><span class="marca-nav" id="marca-pedidos" hidden>0</span></button>
+
+      <button data-vista="caja">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>
+        <span>Caja</span></button>
+
+      <button data-vista="informes">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4m0 16h16M8 16V9m4 7V6m4 10v-4"/></svg>
+        <span>Informes</span></button>
+
+      <button data-vista="ajustes">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+        <span>Ajustes</span></button>
+    </nav>
+
+    <div class="rail-pie">
+      <div style="font-size:12.5px;color:var(--tinta-3);margin-bottom:6px">
+        <b id="rail-usuario" style="color:var(--tinta-2);font-weight:600"></b>
+        <span id="marca-modo" style="display:block;margin-top:2px"></span>
+      </div>
+      <button id="salir">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="lienzo" id="lienzo">
+    <header class="barra">
+      <div>
+        <h1 id="titulo">Panel</h1>
+        <div class="sub" id="subtitulo"></div>
+      </div>
+      <div class="barra-acc" id="acciones"></div>
+    </header>
+    <div class="hoja" id="hoja"></div>
+  </main>
+</div>
+
+<!-- ===================== DIÁLOGO Y AVISO ===================== -->
+<div class="velo" id="velo" hidden>
+  <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="dlg-titulo">
+    <div class="dialogo-tope"><h3 id="dlg-titulo"></h3></div>
+    <div class="dialogo-cuerpo" id="dlg-cuerpo"></div>
+    <div class="dialogo-pie" id="dlg-pie"></div>
+  </div>
+</div>
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

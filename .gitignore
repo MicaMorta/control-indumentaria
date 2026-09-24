@@ -1,0 +1,13 @@
+# Base de trabajo: son los datos reales del negocio, no van al repositorio.
+# La base de arranque que sí se versiona es datos/inicial.json
+datos/base.json
+datos/base.json.tmp
+
+# Respaldos descargados
+base-*.json
+
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+*.log
