@@ -1,10 +1,11 @@
 /* Punto de entrada: arma el router, engancha los eventos y arranca. */
 
 import { $, $$, esc, fechaLarga, avisar, cerrarDialogo } from './utilidades.js';
-import { arrancar, modo, guardarYa } from './almacen.js';
+import { arrancar, modo, guardarYa, asegurarDesde } from './almacen.js';
+import { iniciarFirebase, disponible } from './firebase.js';
 import { productosEnAlerta, pedidosPorEstado } from './negocio.js';
 import { ui, bus } from './estado.js';
-import { verificar, recordarSesion, sesionActiva, cerrarSesion } from './auth.js';
+import { entrar, restaurarSesion, salir, esAdmin, sesionActiva } from './auth.js';
 
 import { vistaPanel }                                  from './vistas/panel.js';
 import { vistaProductos, editorProducto, dialogoIngresarPedido } from './vistas/productos.js';
@@ -14,6 +15,7 @@ import { vistaPedidos, editorPedido, cancelarPedido }  from './vistas/pedidos.js
 import { vistaCaja, editorMovimiento, deshacer, alternarDetalle } from './vistas/caja.js';
 import { vistaInformes }                               from './vistas/informes.js';
 import { vistaAjustes }                                from './vistas/ajustes.js';
+import { vistaUsuarios }                               from './vistas/usuarios.js';
 
 const VISTAS = {
   panel:     { titulo: 'Panel',           sub: 'Cómo viene el negocio',                  pintar: vistaPanel },
@@ -23,7 +25,8 @@ const VISTAS = {
   pedidos:   { titulo: 'Pedidos',         sub: '',                                        pintar: vistaPedidos },
   caja:      { titulo: 'Caja',            sub: 'Ventas, ingresos y egresos',             pintar: vistaCaja },
   informes:  { titulo: 'Informes',        sub: '',                                        pintar: vistaInformes },
-  ajustes:   { titulo: 'Ajustes',         sub: 'Respaldo y preferencias',                pintar: vistaAjustes }
+  ajustes:   { titulo: 'Ajustes',         sub: 'Respaldo y preferencias',                pintar: vistaAjustes },
+  usuarios:  { titulo: 'Usuarios',        sub: 'Quién puede entrar al sistema',          pintar: vistaUsuarios }
 };
 
 /* --------------------------------------------------------------------------
@@ -51,12 +54,12 @@ function pintar(){
 /* Importar ya no está en el menú: se entra desde el botón de Productos.
    Mientras se está ahí, el menú deja marcado Productos para que no quede
    ninguna opción encendida. */
-const EN_EL_MENU = { importar: 'productos' };
+const EN_EL_MENU = { importar: 'productos', usuarios: null };
 
 function ir(destino){
   ui.vista = destino;
   ui.busqueda = '';
-  const marcado = EN_EL_MENU[destino] || destino;
+  const marcado = destino in EN_EL_MENU ? EN_EL_MENU[destino] : destino;
   $$('#nav button').forEach(b =>
     b.setAttribute('aria-current', String(b.dataset.vista === marcado)));
   $('#lienzo').scrollTop = 0;
@@ -112,7 +115,7 @@ document.addEventListener('click', ev => {
   if (ver){ alternarDetalle(ver.dataset.ver); return; }
 
   /* sesión */
-  if (t.id === 'salir'){ salir(); return; }
+  if (t.id === 'salir'){ cerrarSesionUI(); return; }
 });
 
 /* Las dos fechas del rango libre. `change` y no `click`, por eso va aparte. */
@@ -129,10 +132,19 @@ document.addEventListener('change', ev => {
       destino[campo] = t.value;
       destino.clave = 'personalizado';
       pintarVista();
+      /* Con Firestore solo están cargados los últimos meses. Si el rango se
+         fue más atrás, se busca ese tramo y se vuelve a pintar con todo. */
+      if (campo === 'desde') traerHistorial(destino.desde, pintarVista);
       return;
     }
   }
 });
+
+async function traerHistorial(desde, pintarVista){
+  if (!desde) return;
+  const trajo = await asegurarDesde(new Date(desde + 'T00:00:00').toISOString());
+  if (trajo) pintarVista();
+}
 
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape') cerrarDialogo();
@@ -144,61 +156,92 @@ window.addEventListener('beforeunload', () => { guardarYa(); });
 /* --------------------------------------------------------------------------
    INGRESO
    -------------------------------------------------------------------------- */
-async function entrar(){
+async function intentarIngreso(){
   const usuario = $('#ing-usuario').value;
-  const clave   = $('#ing-clave').value;
+  const pin     = $('#ing-clave').value;
   const btn = $('#ing-entrar');
-  btn.disabled = true;
 
-  try{
-    const u = await verificar(usuario, clave);
-    if (!u){
-      $('#ing-error').textContent = 'Usuario o contraseña incorrectos.';
-      $('#ing-error').hidden = false;
-      $('#ing-clave').value = '';
-      $('#ing-clave').focus();
-      return;
-    }
-    recordarSesion(u);
-    await abrirApp(u);
-  }catch(e){
-    $('#ing-error').textContent = 'No se pudo leer datos/usuarios.json.';
+  btn.disabled = true;
+  btn.textContent = 'Entrando…';
+  $('#ing-error').hidden = true;
+
+  const r = await entrar(usuario, pin);
+
+  btn.disabled = false;
+  btn.textContent = 'Entrar';
+
+  if (r.error){
+    $('#ing-error').textContent = r.error;
     $('#ing-error').hidden = false;
-  }finally{
-    btn.disabled = false;
+    $('#ing-clave').value = '';
+    $('#ing-clave').focus();
+    return;
   }
+
+  /* La base se lee después de entrar: con Firestore, las reglas exigen sesión
+     iniciada, así que antes no habría nada que leer. */
+  await arrancar();
+  await abrirApp(r.usuario);
 }
+
+const DONDE_GUARDA = {
+  firestore: 'Guardando en la nube',
+  servidor:  'Guardando en el JSON',
+  local:     'Guardando en este equipo'
+};
 
 async function abrirApp(u){
   ui.usuario = u;
   $('#ingreso').hidden = true;
   $('#app').hidden = false;
-  $('#rail-usuario').textContent = u.nombre;
-  $('#marca-modo').textContent = modo === 'servidor' ? 'Guardando en el JSON' : 'Guardando en este equipo';
-  ir('panel');
+  $('#rail-usuario').textContent = u.nombre + (esAdmin() ? ' · admin' : '');
+  $('#marca-modo').textContent = DONDE_GUARDA[modo] || DONDE_GUARDA.local;
+
+  /* La página oculta se alcanza escribiendo #usuarios en la dirección. */
+  ir(window.location.hash === '#usuarios' ? 'usuarios' : 'panel');
 }
 
-function salir(){
-  cerrarSesion();
+function cerrarSesionUI(){
+  /* La pantalla se cierra primero y el cierre de sesión va después. Si se
+     esperara a la red, quedaría la caja a la vista unos segundos justo cuando
+     alguien se está yendo del mostrador. */
   ui.usuario = null;
   ui.carrito = [];
   $('#app').hidden = true;
   $('#ingreso').hidden = false;
   $('#ing-clave').value = '';
   $('#ing-error').hidden = true;
+  if (window.location.hash) window.location.hash = '';
+  salir();
 }
 
 /* --------------------------------------------------------------------------
    ARRANQUE
    -------------------------------------------------------------------------- */
 (async function inicio(){
-  $('#ing-entrar').onclick = entrar;
-  $('#ing-clave').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+  $('#ing-entrar').onclick = intentarIngreso;
+  $('#ing-clave').addEventListener('keydown', e => { if (e.key === 'Enter') intentarIngreso(); });
   $('#ing-usuario').addEventListener('keydown', e => { if (e.key === 'Enter') $('#ing-clave').focus(); });
 
-  await arrancar();
+  /* Solo dice cómo se valida el ingreso; el resto lo cuenta Ajustes. */
+  const hayFirebase = await iniciarFirebase();
+  $('#acceso-nota').textContent = hayFirebase
+    ? 'El ingreso se valida contra el servidor. Los datos del negocio quedan detrás de esa sesión.'
+    : 'Sin base configurada: el ingreso se valida en este navegador y no es seguridad real.';
 
-  const u = sesionActiva();
-  if (u) await abrirApp(u);
-  else $('#ing-usuario').focus();
+  /* Si la sesión sigue viva, se entra derecho. */
+  const u = await restaurarSesion();
+  if (u){
+    await arrancar();
+    await abrirApp(u);
+  } else {
+    $('#ing-usuario').focus();
+  }
+
+  /* Entrar y salir de la página oculta desde la barra de direcciones. */
+  window.addEventListener('hashchange', () => {
+    if (!sesionActiva()) return;
+    if (window.location.hash === '#usuarios') ir('usuarios');
+    else if (ui.vista === 'usuarios') ir('panel');
+  });
 })();

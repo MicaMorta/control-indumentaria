@@ -1,10 +1,42 @@
 /* Todo lo que se toca al mover el proyecto de lugar vive acá. */
 
+/* --------------------------------------------------------------------------
+   INGRESO POR NOMBRE Y PIN
+
+   La persona escribe un nombre y un PIN. Por debajo eso se traduce a un
+   usuario de Firebase Authentication: el nombre se convierte en un correo
+   interno y el PIN se estira a una contraseña. Nadie ve un correo nunca.
+
+   El dominio no existe ni recibe mail: Firebase solo pide que el formato sea
+   válido. No lo cambies una vez que hay usuarios creados, porque la cuenta
+   quedaría colgada.
+   -------------------------------------------------------------------------- */
+export const DOMINIO_USUARIOS = 'usuarios.control-stock.local';
+
+/* Largo del PIN. Con 4 dígitos hay 10.000 combinaciones; con 6, un millón.
+   Como la clave se prueba contra una API pública, subirlo a 6 multiplica por
+   cien el trabajo de adivinarlo y le cuesta dos teclas más a la persona. */
+export const LARGO_PIN = 4;
+
+/* Firebase exige contraseñas de 6 caracteres como mínimo, así que el PIN se
+   completa con este texto. No es un secreto —viaja en el código, que es
+   público— y no agrega seguridad: solo cumple el requisito de formato. */
+export const RELLENO_PIN = '::stock::';
+
+/* Cuántos días de ventas y movimientos se traen al abrir. El resto se busca
+   solo cuando un informe pide fechas más viejas. Leer todo el historial en
+   cada visita es lo que agota la cuota gratuita de lecturas. */
+export const VENTANA_DIAS = 90;
+
 export const RUTAS = {
   usuarios: 'datos/usuarios.json',   // usuarios y contraseñas (hash)
   inicial:  'datos/inicial.json',    // base de arranque
-  api:      'api/base'               // solo existe si corrés servidor/servidor.mjs
+  api:      'api/base',              // solo existe si corrés servidor/servidor.mjs
+  firebase: 'datos/firebase.json'    // credenciales del proyecto; si falta, no se usa Firestore
 };
+
+/* Versión del SDK de Firebase que se carga desde la CDN de Google. */
+export const SDK = 'https://www.gstatic.com/firebasejs/10.14.1';
 
 export const CLAVE_LOCAL  = 'indumentaria.base.v1';
 export const CLAVE_SESION = 'indumentaria.sesion';

@@ -7,6 +7,7 @@ import { ui, bus } from '../estado.js';
 export function vistaAjustes(){
   $('#acciones').innerHTML = '';
 
+  const enNube     = modo === 'firestore';
   const enServidor = modo === 'servidor';
 
   $('#hoja').innerHTML = `
@@ -16,11 +17,16 @@ export function vistaAjustes(){
         <div class="tarjeta-tope"><h3>Dónde se están guardando los datos</h3></div>
         <div class="tarjeta-cuerpo">
           <p style="margin:0 0 11px;font-size:14px">
-            <span class="pastilla ${enServidor ? 'es-ingreso' : 'es-egreso'}">
-              ${enServidor ? 'En el archivo JSON' : 'En este navegador'}</span>
+            <span class="pastilla ${enNube || enServidor ? 'es-ingreso' : 'es-egreso'}">
+              ${enNube ? 'En la nube' : enServidor ? 'En el archivo JSON' : 'En este navegador'}</span>
           </p>
           <p style="font-size:13.5px;color:var(--tinta-2);margin:0;line-height:1.6">
-            ${enServidor
+            ${enNube
+              ? `Los datos están en Firestore, detrás de tu usuario. Se ven desde
+                 cualquier dispositivo y Google los respalda. Para no gastar la cuota
+                 de lecturas, al abrir se traen los últimos meses; si un informe pide
+                 fechas más viejas, ese tramo se busca en el momento.`
+              : enServidor
               ? `Hay un servidor escuchando, así que cada cambio se escribe en
                  <code>datos/base.json</code>. Es el archivo que subís al repositorio.`
               : `No hay servidor, así que todo vive en el almacenamiento de este navegador.
@@ -73,11 +79,17 @@ export function vistaAjustes(){
       <section class="tarjeta">
         <div class="tarjeta-tope"><h3>Qué falta para la versión final</h3></div>
         <div class="tarjeta-cuerpo" style="font-size:13.5px;color:var(--tinta-2);line-height:1.65">
-          <p style="margin:0 0 9px">El ingreso de hoy se valida en el propio navegador contra
-          un archivo público: alcanza para que no entre cualquiera, pero no es seguridad real.</p>
-          <p style="margin:0">En producción esto pasa a Firestore con Firebase Authentication
-          y Security Rules. Eso suma acceso desde cualquier dispositivo, respaldo automático
-          y que borrar el historial del navegador deje de ser un riesgo.</p>
+          ${enNube
+            ? `<p style="margin:0 0 9px">El ingreso se valida contra el servidor y los datos
+               quedan detrás de las Security Rules.</p>
+               <p style="margin:0">Falta el cierre de caja diario, y definir si hace falta
+               lectura de código de barras y fotos de producto.</p>`
+            : `<p style="margin:0 0 9px">El ingreso de hoy se valida en el propio navegador
+               contra un archivo público: alcanza para que no entre cualquiera, pero no es
+               seguridad real.</p>
+               <p style="margin:0">Configurando <code>datos/firebase.json</code> pasa a
+               Firestore con autenticación real, acceso desde cualquier dispositivo y
+               respaldo automático.</p>`}
         </div>
       </section>
     </div>`;

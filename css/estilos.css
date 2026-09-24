@@ -619,3 +619,11 @@ tbody tr:hover{ background:var(--superficie-2) }
   margin-top:5px; font-size:12px; color:var(--marca);
   font-weight:500; text-align:right;
 }
+
+/* Mensaje de error dentro de un formulario. */
+.error-caja{
+  margin:0; font-size:13.5px; color:var(--egreso);
+  background:var(--egreso-suave); border:1px solid #E4C3D1;
+  border-radius:var(--r-ch); padding:9px 12px; line-height:1.45;
+}
+.error-caja[hidden]{ display:none }

@@ -1,5 +1,8 @@
 # Control de stock y caja — indumentaria
 
+**Versión 1.0** — base común para todos los clientes. Lo que se agregue para
+un cliente puntual va sobre esta base, no adentro de ella.
+
 Sistema de control interno para un local de ropa: stock por talle, registro de
 ventas con forma de cobro, ingresos, egresos y balance. Vanilla JavaScript, sin
 dependencias, sin compilación.

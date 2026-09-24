@@ -1,6 +1,6 @@
 {
   "name": "control-indumentaria",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "description": "Control de stock, ventas y caja para un local de indumentaria",
   "type": "module",
   "private": true,
@@ -9,7 +9,8 @@
     "semilla": "node herramientas/semilla.mjs",
     "demo": "node herramientas/construir.mjs",
     "colisiones": "node herramientas/prueba-colisiones.mjs",
-    "pedidos": "node herramientas/prueba-pedidos.mjs"
+    "pedidos": "node herramientas/prueba-pedidos.mjs",
+    "firebase": "node herramientas/prueba-firebase.mjs"
   },
   "engines": {
     "node": ">=18"

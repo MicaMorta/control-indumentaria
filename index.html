@@ -21,17 +21,13 @@
     <div style="display:grid;gap:13px">
       <label class="campo"><span>Usuario</span>
         <input type="text" id="ing-usuario" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
-      <label class="campo"><span>Contraseña</span>
-        <input type="password" id="ing-clave" autocomplete="current-password"></label>
-      <p id="ing-error" hidden
-         style="margin:0;font-size:13.5px;color:var(--egreso);background:var(--egreso-suave);
-                border-radius:var(--r-ch);padding:9px 12px"></p>
+      <label class="campo"><span>PIN</span>
+        <input type="password" id="ing-clave" inputmode="numeric" maxlength="4"
+               autocomplete="current-password" placeholder="••••"></label>
+      <p id="ing-error" hidden class="error-caja"></p>
       <button class="btn primario" id="ing-entrar" style="width:100%;margin-top:3px">Entrar</button>
     </div>
-    <p class="acceso-nota">
-      El ingreso se valida en este mismo navegador contra un archivo del sitio. Alcanza para que
-      no entre cualquiera, pero no es seguridad real: en producción va Firebase Authentication.
-    </p>
+    <p class="acceso-nota" id="acceso-nota"></p>
   </div>
 </div>
 
