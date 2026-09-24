@@ -2,7 +2,7 @@
 
 import { $, $$, esc, fechaLarga, avisar, cerrarDialogo } from './utilidades.js';
 import { arrancar, modo, guardarYa, asegurarDesde } from './almacen.js';
-import { iniciarFirebase, disponible } from './firebase.js';
+import { iniciarFirebase, disponible, porQueNo } from './firebase.js';
 import { productosEnAlerta, pedidosPorEstado } from './negocio.js';
 import { ui, bus } from './estado.js';
 import { entrar, restaurarSesion, salir, esAdmin, sesionActiva } from './auth.js';
@@ -227,7 +227,7 @@ function cerrarSesionUI(){
   const hayFirebase = await iniciarFirebase();
   $('#acceso-nota').textContent = hayFirebase
     ? 'El ingreso se valida contra el servidor. Los datos del negocio quedan detrás de esa sesión.'
-    : 'Sin base configurada: el ingreso se valida en este navegador y no es seguridad real.';
+    : 'Modo prototipo, sin seguridad real: ' + porQueNo();
 
   /* Si la sesión sigue viva, se entra derecho. */
   const u = await restaurarSesion();

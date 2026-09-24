@@ -57,8 +57,32 @@ valores.
 > navegador y cualquiera puede verlos. No son una contraseña: lo que protege la
 > base son las reglas del paso 6. No pierdas tiempo tratando de ocultarlos.
 
-Si el archivo no está, la aplicación arranca igual en modo local. Esa
-degradación es a propósito: permite trabajar sin tocar la base real.
+Si el archivo no está, la aplicación arranca igual en modo prototipo y te dice
+el motivo en la pantalla de ingreso y en `#usuarios`.
+
+> **El archivo tiene que quedar publicado con el sitio.** La aplicación lo pide
+> con `fetch`, así que si lo agregás al `.gitignore` nunca llega a GitHub Pages
+> y la app cae al modo prototipo. No lo ignores: no es secreto, y las
+> credenciales viajan igual en el código.
+
+### Si dice "Sin conexión con Firebase"
+
+La pantalla `#usuarios` te dice el motivo exacto. Los cuatro habituales:
+
+| Lo que dice | Qué pasó |
+|---|---|
+| No encontré datos/firebase.json | El archivo no está, o no se publicó |
+| Le faltan apiKey o projectId | Se copió el objeto incompleto |
+| No es un JSON válido | Quedó una coma de más o comillas sin cerrar |
+| No se pudo descargar el SDK | Sin internet, o el sitio se abrió con doble clic en vez de servirlo |
+
+Para verificarlo en diez segundos, abrí `tu-sitio/datos/firebase.json` en una
+pestaña. Si da 404, el problema es ese.
+
+Y una que confunde: **la demostración de un solo archivo (`dist/demo.html`)
+nunca va a conectar con Firebase**, porque no tiene de dónde leer las
+credenciales y el entorno donde suele verse bloquea los scripts externos. Esa
+versión es solo para mostrar la aplicación, no para trabajar.
 
 ---
 

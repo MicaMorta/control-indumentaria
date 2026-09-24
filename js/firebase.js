@@ -13,22 +13,51 @@
 import { RUTAS, SDK } from './config.js';
 
 let estado = 'sin-iniciar';   // sin-iniciar | listo | ausente
+let motivo = null;            // por qué no se pudo conectar
 let app = null, auth = null, db = null, api = null, config = null;
+
+/* Diagnóstico para la persona que está mirando la pantalla. Sin esto, un
+   "no hay conexión" obliga a abrir la consola para saber qué pasó. */
+const MOTIVOS = {
+  'sin-archivo':
+    'No encontré datos/firebase.json. Copiá datos/firebase.json.ejemplo con ese nombre y pegá las credenciales de tu proyecto.',
+  'credenciales-incompletas':
+    'datos/firebase.json existe pero le faltan apiKey o projectId. Copiá de nuevo el objeto firebaseConfig completo desde la consola de Firebase.',
+  'json-invalido':
+    'datos/firebase.json no es un JSON válido. Revisá que no haya quedado una coma de más o comillas sin cerrar.',
+  'sdk-bloqueado':
+    'No se pudo descargar el SDK de Firebase. Puede ser falta de internet, o que estés abriendo el archivo con doble clic o dentro de una vista previa que bloquea scripts externos. Hace falta servir el sitio por http://localhost o por https.',
+  'error':
+    'Firebase respondió con un error al conectar.'
+};
 
 export async function iniciarFirebase(){
   if (estado !== 'sin-iniciar') return estado === 'listo';
 
   try{
-    const r = await fetch(RUTAS.firebase);
-    if (!r.ok) throw new Error('sin credenciales');
-    config = await r.json();
-    if (!config.projectId || !config.apiKey) throw new Error('credenciales incompletas');
+    let r;
+    try{
+      r = await fetch(RUTAS.firebase);
+    }catch(e){
+      throw Object.assign(new Error('sin-archivo'), { motivo: 'sin-archivo' });
+    }
+    if (!r.ok) throw Object.assign(new Error('sin-archivo'), { motivo: 'sin-archivo' });
+
+    try{
+      config = await r.json();
+    }catch(e){
+      throw Object.assign(new Error('json-invalido'), { motivo: 'json-invalido' });
+    }
+    if (!config.projectId || !config.apiKey)
+      throw Object.assign(new Error('incompletas'), { motivo: 'credenciales-incompletas' });
 
     /* Punto de inyección para las pruebas: si hay un SDK puesto acá, se usa
        ese en lugar de bajar el de Google. En el navegador nunca existe, así
        que el camino normal no cambia. Es la única forma de probar el ingreso
        y la sincronización sin pegarle a un proyecto real. */
-    const [apps, autenticacion, firestore] = globalThis.__SDK_FIREBASE
+    let apps, autenticacion, firestore;
+    try{
+      [apps, autenticacion, firestore] = globalThis.__SDK_FIREBASE
       ? [globalThis.__SDK_FIREBASE.apps,
          globalThis.__SDK_FIREBASE.auth,
          globalThis.__SDK_FIREBASE.db]
@@ -37,6 +66,9 @@ export async function iniciarFirebase(){
           import(`${SDK}/firebase-auth.js`),
           import(`${SDK}/firebase-firestore.js`)
         ]);
+    }catch(e){
+      throw Object.assign(new Error('sdk'), { motivo: 'sdk-bloqueado' });
+    }
 
     app  = apps.initializeApp(config);
     auth = autenticacion.getAuth(app);
@@ -57,11 +89,16 @@ export async function iniciarFirebase(){
 
   }catch(e){
     estado = 'ausente';
+    motivo = e.motivo || 'error';
     return false;
   }
 }
 
 export const disponible = () => estado === 'listo';
+
+/* Qué pasó, en castellano, para mostrarlo en pantalla. */
+export const porQueNo = () => estado === 'listo' ? null : (MOTIVOS[motivo] || MOTIVOS.error);
+export const codigoDeFalla = () => motivo;
 export const conexion   = () => ({ app, auth, db, api, config });
 
 /* Segunda instancia de la aplicación, con su propia sesión.

@@ -3,10 +3,12 @@
 datos/base.json
 datos/base.json.tmp
 
-# Credenciales del proyecto de Firebase de cada cliente.
-# No son secretas (viajan en el cliente), pero cada instalación tiene la suya
-# y no corresponde versionar la de uno en la base común.
-datos/firebase.json
+# datos/firebase.json NO va acá a propósito.
+# La aplicación lo pide por fetch, así que tiene que estar publicado junto al
+# resto del sitio: si se ignora, en GitHub Pages nunca llega y la app cae al
+# modo prototipo sin decir por qué. No es secreto: las credenciales viajan
+# igual en el cliente y lo que protege la base son las Security Rules.
+# Cada repositorio de cliente lleva el suyo.
 
 # Respaldos descargados
 base-*.json

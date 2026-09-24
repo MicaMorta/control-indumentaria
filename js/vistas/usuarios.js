@@ -13,7 +13,7 @@
 import { $, esc, fechaLarga, avisar, confirmar } from '../utilidades.js';
 import { crearUsuario, listarUsuarios, cambiarMiPin, esAdmin, sesionActiva,
          normalizarUsuario, pinValido } from '../auth.js';
-import { disponible } from '../firebase.js';
+import { disponible, porQueNo, codigoDeFalla } from '../firebase.js';
 import { LARGO_PIN } from '../config.js';
 import { bus } from '../estado.js';
 
@@ -23,11 +23,32 @@ export async function vistaUsuarios(){
   $('#acciones').innerHTML = '<button class="btn" data-ir="panel">Volver</button>';
 
   if (!disponible()){
-    $('#hoja').innerHTML = `<section class="tarjeta"><div class="vacio">
-      <h3>Sin conexión con la base</h3>
-      <p>Los usuarios se administran solo con Firebase configurado. Sin eso, el
-      ingreso usa el archivo datos/usuarios.json, que se edita a mano.</p>
-    </div></section>`;
+    $('#hoja').innerHTML = `<section class="tarjeta">
+      <div class="tarjeta-tope"><h3>Sin conexión con Firebase</h3></div>
+      <div class="tarjeta-cuerpo">
+        <p class="error-caja" style="margin-bottom:14px">${esc(porQueNo())}</p>
+        <p style="font-size:13.5px;color:var(--tinta-2);margin:0 0 12px;line-height:1.6">
+          Entraste igual porque la aplicación cayó al modo prototipo, que valida contra
+          <code>datos/usuarios.json</code>. En ese modo no hay usuarios que administrar:
+          ese archivo se edita a mano.</p>
+        <details style="font-size:13.5px;color:var(--tinta-2);line-height:1.6">
+          <summary style="cursor:pointer;font-weight:500;color:var(--tinta)">
+            Cómo verificarlo</summary>
+          <ol style="margin:10px 0 0;padding-left:20px">
+            <li>Abrí <code>${esc(window.location.origin)}/datos/firebase.json</code> en una pestaña.
+                Si da 404, el archivo no está donde la aplicación lo busca.</li>
+            <li>Si lo estás sirviendo desde GitHub Pages, fijate que
+                <code>datos/firebase.json</code> figura en <code>.gitignore</code>:
+                hay que sacarlo de ahí para que se publique.</li>
+            <li>Si abriste el archivo con doble clic, no va a funcionar nunca.
+                Hace falta <code>http://localhost</code> o <code>https</code>.</li>
+            <li>Revisá la consola del navegador por errores de red bloqueada.</li>
+          </ol>
+          <p style="margin:10px 0 0;color:var(--tinta-3)">
+            Código interno: <code>${esc(codigoDeFalla() || 'desconocido')}</code></p>
+        </details>
+      </div>
+    </section>`;
     return;
   }
 

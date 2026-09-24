@@ -1,0 +1,16 @@
+const firebaseConfig = {
+
+  apiKey: "AIzaSyBCgOtsC1yPsZiW6uaBqklNUqcJYyQxGqc",
+
+  authDomain: "control-indumentaria.firebaseapp.com",
+
+  projectId: "control-indumentaria",
+
+  storageBucket: "control-indumentaria.firebasestorage.app",
+
+  messagingSenderId: "209130560540",
+
+  appId: "1:209130560540:web:9be844abf9e8ef5d2993d9"
+
+};
+

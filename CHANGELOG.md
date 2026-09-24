@@ -1,5 +1,13 @@
 # Historial de versiones
 
+## 1.1.1
+
+- La aplicación ahora dice **por qué** no pudo conectar con Firebase, en la
+  pantalla de ingreso y en `#usuarios`: archivo ausente, JSON inválido,
+  credenciales incompletas o SDK inalcanzable.
+- Corregido: `datos/firebase.json` estaba en `.gitignore`, así que en GitHub
+  Pages nunca se publicaba y la aplicación caía al modo prototipo en silencio.
+
 ## 1.1.0
 
 Conexión con Firebase.

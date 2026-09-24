@@ -1,0 +1,69 @@
+rules_version = '2';
+
+/* --------------------------------------------------------------------------
+   SECURITY RULES
+
+   Esto es lo único que protege los datos. La configuración de Firebase viaja
+   en el código del cliente y es pública por diseño: cualquiera puede ver el
+   ID del proyecto. Lo que impide que lea o borre la base es este archivo.
+
+   Se publica con:  firebase deploy --only firestore:rules
+
+   Probalas antes de confiar en ellas:
+     firebase emulators:start --only firestore
+   -------------------------------------------------------------------------- */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function entro() {
+      return request.auth != null;
+    }
+
+    /* El rol vive en el documento del usuario, no en el cliente.
+       Alguien podría alterar el programa que corre en su navegador; no puede
+       alterar lo que dice este documento, porque nadie salvo un administrador
+       puede escribirlo. */
+    function miPerfil() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function soyAdmin() {
+      return entro()
+        && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid))
+        && miPerfil().rol == 'admin';
+    }
+
+    /* ----------------------------------------------------------------------
+       USUARIOS
+       Cada uno lee su propio perfil, porque el programa necesita saber su rol
+       al entrar. Leer la lista completa y crear usuarios es solo de admin.
+
+       Nadie puede escribir su propio documento: si pudiera, se pondría
+       rol 'admin' solo y toda la separación de permisos sería decorativa.
+       ---------------------------------------------------------------------- */
+    match /usuarios/{uid} {
+      allow get: if entro() && (request.auth.uid == uid || soyAdmin());
+      allow list: if soyAdmin();
+      allow create, update, delete: if soyAdmin();
+    }
+
+    /* ----------------------------------------------------------------------
+       DATOS DEL NEGOCIO
+       Cualquiera que haya entrado puede trabajar. La separación entre
+       vendedor y administrador es de funciones, no de confidencialidad:
+       quien atiende el mostrador necesita ver precios y registrar ventas.
+       ---------------------------------------------------------------------- */
+    match /productos/{id}    { allow read, write: if entro(); }
+    match /ventas/{id}       { allow read, write: if entro(); }
+    match /movimientos/{id}  { allow read, write: if entro(); }
+    match /pedidos/{id}      { allow read, write: if entro(); }
+    match /config/{id}       { allow read, write: if entro(); }
+
+    /* Todo lo que no esté nombrado arriba queda cerrado. Sin esta última
+       regla, una colección nueva creada más adelante nacería sin protección. */
+    match /{documento=**} {
+      allow read, write: if false;
+    }
+  }
+}
