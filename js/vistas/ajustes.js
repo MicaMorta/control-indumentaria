@@ -1,4 +1,5 @@
-import { $, esc, dia, hoyISO, bajar, avisar, confirmar } from '../utilidades.js';
+import { $, esc, dia, hoyISO, bajar, avisar, confirmar, dialogo, cerrarDialogo }
+  from '../utilidades.js';
 import { datos, modo, guardar, comoJSON, reemplazar, volverAlInicial, vaciar }
   from '../almacen.js';
 import { productosEnAlerta } from '../negocio.js';
@@ -64,15 +65,28 @@ export function vistaAjustes(){
       </section>
 
       <section class="tarjeta">
-        <div class="tarjeta-tope"><h3>Datos de demostración</h3></div>
+        <div class="tarjeta-tope"><h3>${enNube ? 'Borrar todo' : 'Datos de demostración'}</h3></div>
         <div class="tarjeta-cuerpo">
-          <p style="font-size:13.5px;color:var(--tinta-2);margin:0 0 13px">
-            El programa arranca con productos y ventas inventados para mostrar cómo se ve
-            en uso. Vaciá todo cuando quieras empezar con el stock real.</p>
-          <div style="display:flex;gap:9px;flex-wrap:wrap">
-            <button class="btn" id="a-resembrar">Volver a la demostración</button>
-            <button class="btn riesgo" id="a-vaciar">Vaciar todo</button>
-          </div>
+          ${enNube ? `
+            <p style="font-size:13.5px;color:var(--tinta-2);margin:0 0 13px">
+              Estos datos son los del negocio y están en la nube. Vaciarlos borra
+              productos, ventas, movimientos y pedidos para todos los dispositivos,
+              no solo para este.</p>
+            <div style="display:flex;gap:9px;flex-wrap:wrap">
+              <button class="btn riesgo" id="a-vaciar">Vaciar todo</button>
+            </div>
+            <p class="firma" style="margin-top:12px">
+              La opción de volver a los datos de demostración no aparece con la base
+              en la nube: reemplazaría el negocio real por productos inventados.</p>
+          ` : `
+            <p style="font-size:13.5px;color:var(--tinta-2);margin:0 0 13px">
+              El programa arranca con productos y ventas inventados para mostrar cómo se ve
+              en uso. Vaciá todo cuando quieras empezar con el stock real.</p>
+            <div style="display:flex;gap:9px;flex-wrap:wrap">
+              <button class="btn" id="a-resembrar">Volver a la demostración</button>
+              <button class="btn riesgo" id="a-vaciar">Vaciar todo</button>
+            </div>
+          `}
         </div>
       </section>
 
@@ -134,7 +148,8 @@ export function vistaAjustes(){
     inp.click();
   };
 
-  $('#a-resembrar').onclick = () => confirmar({
+  const botonResembrar = $('#a-resembrar');
+  if (botonResembrar) botonResembrar.onclick = () => confirmar({
     titulo: 'Volver a la demostración',
     texto: 'Se reemplaza todo lo que haya cargado por los datos de muestra. Descargá un respaldo antes si te importa lo que hay.',
     botón: 'Reemplazar',
@@ -151,7 +166,9 @@ export function vistaAjustes(){
     }
   });
 
-  $('#a-vaciar').onclick = () => confirmar({
+  /* Con la base en la nube esto borra el negocio para todos los dispositivos.
+     Un botón de confirmar se toca sin leer; escribir una palabra, no. */
+  $('#a-vaciar').onclick = () => enNube ? vaciarConPalabra() : confirmar({
     titulo: 'Vaciar todo',
     texto: 'Se borran los productos, las ventas y los movimientos. Si todavía no descargaste un respaldo, esto no se puede deshacer.',
     botón: 'Vaciar todo',
@@ -163,4 +180,35 @@ export function vistaAjustes(){
       avisar('Todo vacío');
     }
   });
+
+  function vaciarConPalabra(){
+    dialogo({
+      titulo: 'Vaciar toda la base',
+      cuerpo: `
+        <p style="margin:0 0 13px;color:var(--tinta-2);line-height:1.6">
+          Esto borra <b>${datos.productos.length} productos</b>,
+          <b>${datos.ventas.length} ventas</b> y
+          <b>${datos.pedidos.length} pedidos</b> de la nube, para todos los
+          dispositivos. No se puede deshacer.</p>
+        <p style="margin:0 0 13px;color:var(--tinta-2)">
+          Descargá un respaldo antes si te importa lo que hay.</p>
+        <label class="campo"><span>Escribí BORRAR para confirmar</span>
+          <input type="text" id="v-palabra" autocapitalize="characters"
+            autocomplete="off" spellcheck="false"></label>`,
+      pie: `<button class="btn" data-cerrar>Cancelar</button>
+            <button class="btn riesgo" id="v-si" disabled>Vaciar todo</button>`,
+      alAbrir(){
+        const campo = $('#v-palabra'), boton = $('#v-si');
+        campo.oninput = () => boton.disabled = campo.value.trim().toUpperCase() !== 'BORRAR';
+        boton.onclick = async () => {
+          if (campo.value.trim().toUpperCase() !== 'BORRAR') return;
+          cerrarDialogo();
+          await vaciar();
+          ui.carrito = [];
+          bus.ir('productos');
+          avisar('Base vaciada');
+        };
+      }
+    });
+  }
 }

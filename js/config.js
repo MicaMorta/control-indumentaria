@@ -11,6 +11,23 @@
    válido. No lo cambies una vez que hay usuarios creados, porque la cuenta
    quedaría colgada.
    -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   MODO ESTRICTO
+
+   En false (desarrollo), si Firebase no responde la aplicación sigue contra el
+   servidor local o el navegador. Cómodo para trabajar sin tocar la base real.
+
+   En true (instalación de un cliente), una falla de Firebase corta: muestra el
+   motivo y no deja entrar. Es lo que corresponde en producción, porque la
+   alternativa es peor de lo que parece: ante una caída, la aplicación caería
+   sola al modo prototipo, que valida contra un archivo público y guarda en el
+   navegador. La persona vería un sistema que "anda" y estaría cargando ventas
+   en un lugar que no es la base del negocio.
+
+   Ponelo en true antes de entregar.
+   -------------------------------------------------------------------------- */
+export const MODO_ESTRICTO = false;
+
 export const DOMINIO_USUARIOS = 'usuarios.control-stock.local';
 
 /* Largo del PIN. Con 4 dígitos hay 10.000 combinaciones; con 6, un millón.

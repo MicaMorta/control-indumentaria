@@ -1,5 +1,18 @@
 # Historial de versiones
 
+## 1.2.0
+
+Endurecido para una instalación de cliente.
+
+- `MODO_ESTRICTO` en `config.js`: con la base conectada, una falla de Firebase
+  corta el ingreso en lugar de caer al modo prototipo, que guardaría las
+  ventas en el navegador sin que nadie se entere.
+- Con la base en la nube ya no aparece "Volver a la demostración": reemplazaría
+  el negocio real por productos inventados.
+- "Vaciar todo" con la base en la nube pide escribir BORRAR y dice cuántos
+  productos, ventas y pedidos se van a borrar.
+- `npm run prueba` corre todas las suites de una.
+
 ## 1.1.4
 
 - Cuando el usuario no queda como administrador, `#usuarios` explica cuál de

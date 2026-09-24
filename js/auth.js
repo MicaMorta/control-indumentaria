@@ -15,7 +15,8 @@
    el README y en la pantalla.
    -------------------------------------------------------------------------- */
 
-import { RUTAS, CLAVE_SESION, DOMINIO_USUARIOS, LARGO_PIN, RELLENO_PIN } from './config.js';
+import { RUTAS, CLAVE_SESION, DOMINIO_USUARIOS, LARGO_PIN, RELLENO_PIN,
+         MODO_ESTRICTO } from './config.js';
 import { disponible, conexion, instanciaAparte, cerrarInstanciaAparte } from './firebase.js';
 
 /* --------------------------------------------------------------------------
@@ -65,7 +66,14 @@ export async function entrar(usuario, pin){
   if (!normalizarUsuario(usuario)) return { error: 'Escribí tu nombre de usuario.' };
   if (!pinValido(pin)) return { error: `El PIN son ${LARGO_PIN} números.` };
 
-  return disponible() ? entrarConFirebase(usuario, pin) : entrarModoPrototipo(usuario, pin);
+  if (disponible()) return entrarConFirebase(usuario, pin);
+
+  /* En una instalación de cliente no hay puerta de atrás: si la nube no
+     responde, no se entra. Ver MODO_ESTRICTO en config.js. */
+  if (MODO_ESTRICTO)
+    return { error: 'No hay conexión con la base. No se puede entrar hasta que se restablezca.' };
+
+  return entrarModoPrototipo(usuario, pin);
 }
 
 async function entrarConFirebase(usuario, pin){
