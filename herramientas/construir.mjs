@@ -18,7 +18,7 @@ const RAIZ = resolve(AQUI, '..');
 const leer = p => readFile(join(RAIZ, p), 'utf8');
 
 const ORDEN = [
-  'js/config.js', 'js/utilidades.js', 'js/firebase.js', 'js/almacen.js',
+  'js/config.js', 'js/tema.js', 'js/utilidades.js', 'js/firebase.js', 'js/almacen.js',
   'js/negocio.js', 'js/auth.js', 'js/estado.js', 'js/componentes.js',
   'js/vistas/panel.js', 'js/vistas/productos.js', 'js/vistas/vender.js',
   'js/vistas/importar.js', 'js/vistas/pedidos.js', 'js/vistas/caja.js',
@@ -106,7 +106,14 @@ window.fetch = (url, opciones) => {
 /* Ojo: los reemplazos van como función, no como cadena. En una cadena de
    reemplazo, "$$" significa un "$" literal y "$1" un grupo capturado, así que
    el código (que usa $$ para querySelectorAll) saldría corrompido. */
+/* En un solo archivo no hay carpeta marca/: el favicon se incrusta como
+   data URI y el icono de pantalla de inicio se quita. */
+const favicon = await leer('marca/favicon.svg');
+const comoDato = 'data:image/svg+xml;base64,' + Buffer.from(favicon).toString('base64');
+
 const salida = html
+  .replace('href="marca/favicon.svg"', () => `href="${comoDato}"`)
+  .replace(/<link rel="apple-touch-icon"[^>]*>\n?/, () => '')
   .replace(/<link rel="stylesheet" href="css\/estilos\.css[^"]*">/, () => `<style>\n${css}\n</style>`)
   .replace('<script type="module" src="js/app.js"></script>',
            () => `<script type="module">\n${puente}\n${js}\n</script>`);

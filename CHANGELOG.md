@@ -1,5 +1,20 @@
 # Historial de versiones
 
+## 1.3.0
+
+Identidad Morta Sport y tema oscuro.
+
+- Paleta rehecha sobre el monocromo de la marca: el negro pasa a ser el color
+  de acción. El color queda para lo que tiene que distinguirse de un vistazo:
+  ingresos, egresos y reposición.
+- Tema claro y oscuro, con el logo negro y el blanco. Se recuerda la elección
+  y, si nunca se eligió, sigue al sistema. Se aplica antes del primer pintado
+  para que no haya destello.
+- Logo en la pantalla de ingreso y arriba de "Control de stock".
+- Favicon con la M y la S tomadas del propio logo, que se adapta a la barra
+  clara u oscura del navegador.
+- `marca/` con el logo vectorizado en sus tres variantes.
+
 ## 1.2.0
 
 Endurecido para una instalación de cliente.

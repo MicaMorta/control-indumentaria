@@ -3,6 +3,7 @@
 import { $, $$, esc, fechaLarga, avisar, cerrarDialogo } from './utilidades.js';
 import { arrancar, modo, guardarYa, asegurarDesde } from './almacen.js';
 import { iniciarFirebase, disponible, porQueNo } from './firebase.js';
+import { alternarTema, seguirAlSistema } from './tema.js';
 import { productosEnAlerta, pedidosPorEstado } from './negocio.js';
 import { ui, bus } from './estado.js';
 import { entrar, restaurarSesion, salir, esAdmin, sesionActiva } from './auth.js';
@@ -114,6 +115,9 @@ document.addEventListener('click', ev => {
   const ver = t.closest('[data-ver]');
   if (ver){ alternarDetalle(ver.dataset.ver); return; }
 
+  /* tema */
+  if (t.closest('.tema')){ alternarTema(); return; }
+
   /* sesión */
   if (t.id === 'salir'){ cerrarSesionUI(); return; }
 });
@@ -219,6 +223,7 @@ function cerrarSesionUI(){
    ARRANQUE
    -------------------------------------------------------------------------- */
 (async function inicio(){
+  seguirAlSistema();
   $('#ing-entrar').onclick = intentarIngreso;
   $('#ing-clave').addEventListener('keydown', e => { if (e.key === 'Enter') intentarIngreso(); });
   $('#ing-usuario').addEventListener('keydown', e => { if (e.key === 'Enter') $('#ing-clave').focus(); });

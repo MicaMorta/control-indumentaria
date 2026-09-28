@@ -1,33 +1,89 @@
 /* ==========================================================================
-   PALETA — único lugar a tocar para aplicar los colores de MortaGym
+   PALETA — Morta Sport
+
+   La marca es monocroma: negro sobre blanco y blanco sobre negro. La interfaz
+   sigue eso. El color se reserva para lo que tiene que distinguirse de un
+   vistazo: lo que entra, lo que sale y lo que hay que reponer.
+
+   Dos temas. El claro toma el negro de la marca como color de acción; el
+   oscuro lo invierte, igual que la segunda versión del logo.
+
+   Para adaptar esto a otro cliente se tocan estos dos bloques y nada más.
    ========================================================================== */
 :root{
-  --marca:        #0F6E6A;   /* acción principal, ingresos          */
-  --marca-oscuro: #0A4F4C;   /* hover / presionado                  */
-  --marca-suave:  #E2EFED;   /* fondos teñidos de la marca          */
-  --egreso:       #8E2F5B;   /* egresos, quitar, negativo           */
-  --egreso-suave: #F6E8EE;
-  --alerta:       #B07A0C;   /* stock bajo                          */
-  --alerta-suave: #FBF0D9;
-  --tinta:        #16232B;   /* texto principal                     */
-  --tinta-2:      #5A6C77;   /* texto secundario                    */
-  --tinta-3:      #8A9AA4;   /* texto terciario, marcas de agua     */
-  --papel:        #EDF0F1;   /* fondo de la aplicación              */
-  --superficie:   #FFFFFF;   /* tarjetas, tablas, barras            */
-  --superficie-2: #F5F7F8;   /* filas alternas, campos              */
-  --linea:        #DDE3E6;
-  --linea-2:      #C6D0D5;
+  /* --- acción, tomada de la marca --- */
+  --marca:        #141414;   /* botones principales, selección, barras */
+  --marca-oscuro: #000000;   /* presionado */
+  --marca-suave:  #ECECEA;   /* fondos teñidos */
+  --sobre-marca:  #FFFFFF;   /* texto sobre el color de acción */
+
+  /* --- semánticos --- */
+  --positivo:       #1C7A4F;  /* ingresos, ganancia */
+  --positivo-suave: #E4F1EA;
+  --positivo-linea: #B9DCC8;
+  --egreso:         #B02318;  /* egresos, quitar */
+  --egreso-suave:   #FBEAE8;
+  --egreso-linea:   #EFC6C1;
+  --alerta:         #8A6100;  /* stock bajo, pendientes */
+  --alerta-suave:   #FAF0D8;
+  --alerta-linea:   #E6D3A3;
+
+  /* --- neutros --- */
+  --tinta:        #121212;
+  --tinta-2:      #5B5B58;
+  --tinta-3:      #8B8B87;
+  --papel:        #F1F1EF;
+  --superficie:   #FFFFFF;
+  --superficie-2: #F7F7F5;
+  --linea:        #E4E4E0;
+  --linea-2:      #CECEC9;
 
   --r-ch: 8px;
   --r:    12px;
   --r-gr: 18px;
-  --sombra: 0 1px 2px rgba(22,35,43,.06), 0 8px 24px -12px rgba(22,35,43,.18);
+  --sombra: 0 1px 2px rgba(18,18,18,.06), 0 8px 24px -12px rgba(18,18,18,.20);
   --rail: 236px;
 
   color-scheme: light;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* --------------------------------------------------------------------------
+   TEMA OSCURO
+   El color de acción se invierte a blanco, como la versión del logo sobre
+   negro. Los semánticos se aclaran: el mismo verde sobre fondo oscuro queda
+   ilegible.
+   -------------------------------------------------------------------------- */
+:root[data-tema="oscuro"]{
+  --marca:        #FFFFFF;
+  --marca-oscuro: #DDDDDD;
+  --marca-suave:  #232323;
+  --sobre-marca:  #101010;
+
+  --positivo:       #4FBF87;
+  --positivo-suave: #16281F;
+  --positivo-linea: #24483A;
+  --egreso:         #F08078;
+  --egreso-suave:   #2C1A19;
+  --egreso-linea:   #4D2B29;
+  --alerta:         #D9A93F;
+  --alerta-suave:   #2A2416;
+  --alerta-linea:   #4A3F22;
+
+  --tinta:        #F0F0EE;
+  --tinta-2:      #A6A6A2;
+  --tinta-3:      #787874;
+  --papel:        #0E0E0E;
+  --superficie:   #181818;
+  --superficie-2: #212121;
+  --linea:        #2B2B2B;
+  --linea-2:      #3C3C3C;
+
+  --sombra: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
 html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
 
 /* ==========================================================================
@@ -63,7 +119,7 @@ h1,h2,h3{ margin:0; font-weight:600; letter-spacing:-.015em }
   position:fixed; inset:0; z-index:90;
   display:grid; place-items:center; padding:24px;
   background:
-    radial-gradient(120% 80% at 50% 0%, var(--marca-suave) 0%, transparent 60%),
+    radial-gradient(130% 90% at 50% -10%, var(--superficie-2) 0%, transparent 62%),
     var(--papel);
 }
 .acceso[hidden]{ display:none }
@@ -108,14 +164,14 @@ h1,h2,h3{ margin:0; font-weight:600; letter-spacing:-.015em }
 }
 .nav button svg{ width:19px; height:19px; flex:none; stroke-width:1.7 }
 .nav button:hover{ background:var(--superficie-2); color:var(--tinta) }
-.nav button[aria-current="true"]{ background:var(--marca); color:#fff }
+.nav button[aria-current="true"]{ background:var(--marca); color:var(--sobre-marca) }
 .nav .marca-nav{
   margin-left:auto; min-width:21px; height:21px; padding:0 6px;
   display:grid; place-items:center; border-radius:999px;
   background:var(--alerta-suave); color:var(--alerta);
   font-size:11.5px; font-weight:700;
 }
-.nav button[aria-current="true"] .marca-nav{ background:rgba(255,255,255,.22); color:#fff }
+.nav button[aria-current="true"] .marca-nav{ background:color-mix(in srgb, var(--sobre-marca) 22%, transparent); color:var(--sobre-marca) }
 .rail-pie{ padding:12px 14px 16px; border-top:1px solid var(--linea) }
 .rail-pie button{ font-size:13px; color:var(--tinta-3); padding:6px 4px }
 .rail-pie button:hover{ color:var(--egreso) }
@@ -148,9 +204,9 @@ h1,h2,h3{ margin:0; font-weight:600; letter-spacing:-.015em }
 }
 .btn:hover{ background:var(--superficie-2) }
 .btn svg{ width:17px; height:17px; stroke-width:1.8 }
-.btn.primario{ background:var(--marca); border-color:var(--marca); color:#fff }
+.btn.primario{ background:var(--marca); border-color:var(--marca); color:var(--sobre-marca) }
 .btn.primario:hover{ background:var(--marca-oscuro); border-color:var(--marca-oscuro) }
-.btn.riesgo{ color:var(--egreso); border-color:#E4C3D1 }
+.btn.riesgo{ color:var(--egreso); border-color:var(--egreso-linea) }
 .btn.riesgo:hover{ background:var(--egreso-suave) }
 .btn.chico{ min-height:34px; padding:0 11px; font-size:13.5px; border-radius:7px }
 .btn.plano{ border-color:transparent; background:transparent }
@@ -202,10 +258,10 @@ input::placeholder,textarea::placeholder{ color:var(--tinta-3) }
 .cifra dd{ margin:6px 0 0; font-size:27px; font-weight:600; letter-spacing:-.03em; line-height:1.1 }
 .cifra .pie{ margin-top:5px; font-size:12.5px; color:var(--tinta-3) }
 .cifra.acento{ background:var(--marca); border-color:var(--marca) }
-.cifra.acento dt{ color:rgba(255,255,255,.8) }
-.cifra.acento dd{ color:#fff }
-.cifra.acento .pie{ color:rgba(255,255,255,.7) }
-.pos{ color:var(--marca) } .neg{ color:var(--egreso) }
+.cifra.acento dt{ color:color-mix(in srgb, var(--sobre-marca) 78%, transparent) }
+.cifra.acento dd{ color:var(--sobre-marca) }
+.cifra.acento .pie{ color:color-mix(in srgb, var(--sobre-marca) 68%, transparent) }
+.pos{ color:var(--positivo) } .neg{ color:var(--egreso) }
 
 /* ==========================================================================
    TABLAS
@@ -232,7 +288,7 @@ tbody tr:hover{ background:var(--superficie-2) }
 }
 .talle b{ display:block; font-size:13.5px; font-weight:600 }
 .talle small{ color:var(--tinta-3); font-size:10.5px; letter-spacing:.02em }
-.talle.bajo{ background:var(--alerta-suave); border-color:#EBD9A8; color:var(--alerta) }
+.talle.bajo{ background:var(--alerta-suave); border-color:var(--alerta-linea); color:var(--alerta) }
 .talle.bajo small{ color:var(--alerta) }
 .talle.cero{ background:var(--superficie); border-style:dashed; color:var(--tinta-3) }
 
@@ -242,9 +298,9 @@ tbody tr:hover{ background:var(--superficie-2) }
   font-size:12.5px; font-weight:500;
   background:var(--superficie-2); border:1px solid var(--linea); color:var(--tinta-2);
 }
-.pastilla.es-venta{ background:var(--marca-suave); border-color:#BEDCD9; color:var(--marca-oscuro) }
-.pastilla.es-ingreso{ background:var(--marca-suave); border-color:#BEDCD9; color:var(--marca-oscuro) }
-.pastilla.es-egreso{ background:var(--egreso-suave); border-color:#E4C3D1; color:var(--egreso) }
+.pastilla.es-venta{ background:var(--positivo-suave); border-color:var(--positivo-linea); color:var(--positivo) }
+.pastilla.es-ingreso{ background:var(--positivo-suave); border-color:var(--positivo-linea); color:var(--positivo) }
+.pastilla.es-egreso{ background:var(--egreso-suave); border-color:var(--egreso-linea); color:var(--egreso) }
 
 .vacio{ padding:44px 24px; text-align:center; color:var(--tinta-2) }
 .vacio h3{ font-size:16px; margin-bottom:5px; color:var(--tinta) }
@@ -334,7 +390,7 @@ tbody tr:hover{ background:var(--superficie-2) }
   position:fixed; z-index:95;
   left:50%; transform:translateX(-50%) translateY(14px);
   bottom:calc(20px + env(safe-area-inset-bottom, 0px));
-  background:var(--tinta); color:#fff;
+  background:var(--tinta); color:var(--papel);
   padding:11px 18px; border-radius:999px;
   font-size:14px; font-weight:500;
   box-shadow:0 14px 34px -10px rgba(22,35,43,.6);
@@ -342,7 +398,7 @@ tbody tr:hover{ background:var(--superficie-2) }
   max-width:calc(100vw - 36px); text-align:center;
 }
 .aviso[data-ver="true"]{ opacity:1; transform:translateX(-50%) translateY(0) }
-.aviso.mal{ background:var(--egreso) }
+.aviso.mal{ background:var(--egreso); color:#fff }
 
 /* ==========================================================================
    TABLET Y TELÉFONO
@@ -414,7 +470,7 @@ tbody tr:hover{ background:var(--superficie-2) }
   grid-row:span 2;
   width:38px; height:38px; border-radius:10px;
   display:grid; place-items:center;
-  background:var(--marca-suave); color:var(--marca);
+  background:var(--positivo-suave); color:var(--positivo);
 }
 .mov-icono svg{ width:19px; height:19px; stroke-width:1.9; fill:none; stroke:currentColor }
 .mov-icono.es-egreso{ background:var(--egreso-suave); color:var(--egreso) }
@@ -451,7 +507,7 @@ tbody tr:hover{ background:var(--superficie-2) }
 .mov-detalle[hidden]{ display:none }
 .mov-detalle div{ display:flex; justify-content:space-between; gap:14px }
 .mov-ver{
-  font-size:12.5px; color:var(--marca); font-weight:500;
+  font-size:12.5px; color:var(--tinta); font-weight:500; text-decoration:underline;
   background:none; padding:0;
 }
 .mov-ver:hover{ text-decoration:underline }
@@ -541,14 +597,14 @@ tbody tr:hover{ background:var(--superficie-2) }
 .pi-costo{ font-weight:600; min-width:92px; text-align:right }
 
 .pedido-nota{
-  margin-top:9px; font-size:13px; color:var(--tinta-2);
+  margin-top:9px; font-size:13px; color:var(--tinta);
   padding:8px 12px; background:var(--alerta-suave);
-  border-radius:var(--r-ch); border:1px solid #EBD9A8;
+  border-radius:var(--r-ch); border:1px solid var(--alerta-linea);
 }
 .pedido-pie{ display:flex; gap:7px; margin-top:10px }
 
-.pastilla.es-pendiente{ background:var(--alerta-suave); border-color:#EBD9A8; color:var(--alerta) }
-.pastilla.es-recibido{ background:var(--marca-suave); border-color:#BEDCD9; color:var(--marca-oscuro) }
+.pastilla.es-pendiente{ background:var(--alerta-suave); border-color:var(--alerta-linea); color:var(--alerta) }
+.pastilla.es-recibido{ background:var(--positivo-suave); border-color:var(--positivo-linea); color:var(--positivo) }
 .pastilla.es-cancelado{ background:var(--superficie-2); border-color:var(--linea-2); color:var(--tinta-3) }
 
 /* ---- editor ---- */
@@ -597,7 +653,7 @@ tbody tr:hover{ background:var(--superficie-2) }
 
 .ing-aviso{
   padding:12px 14px; border-radius:var(--r-ch);
-  background:var(--alerta-suave); border:1px solid #EBD9A8;
+  background:var(--alerta-suave); border:1px solid var(--alerta-linea);
   font-size:13px; color:var(--tinta);
 }
 .ing-cambios{ margin-top:10px; display:grid; gap:5px; font-size:12.5px }
@@ -616,14 +672,14 @@ tbody tr:hover{ background:var(--superficie-2) }
 }
 
 .ya-pedido{
-  margin-top:5px; font-size:12px; color:var(--marca);
+  margin-top:5px; font-size:12px; color:var(--positivo);
   font-weight:500; text-align:right;
 }
 
 /* Mensaje de error dentro de un formulario. */
 .error-caja{
   margin:0; font-size:13.5px; color:var(--egreso);
-  background:var(--egreso-suave); border:1px solid #E4C3D1;
+  background:var(--egreso-suave); border:1px solid var(--egreso-linea);
   border-radius:var(--r-ch); padding:9px 12px; line-height:1.45;
 }
 .error-caja[hidden]{ display:none }
@@ -640,3 +696,50 @@ tbody tr:hover{ background:var(--superficie-2) }
   color:var(--tinta); word-break:break-all; line-height:1.4;
   font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;
 }
+
+/* ==========================================================================
+   LOGO
+   El SVG toma el color del contenedor, así que la misma pieza sirve en los
+   dos temas: negro sobre claro, blanco sobre oscuro. Es exactamente lo que
+   hacen las dos versiones del logo original.
+   ========================================================================== */
+/* El logo va incrustado en cada lugar donde aparece, no como sprite con <use>:
+   son 6 KB y a cambio no depende de que el navegador resuelva la referencia. */
+/* Van las dos versiones del logo, negra y blanca, y el tema elige cuál se
+   muestra. Es lo mismo que trae la marca original, y no depende de que el
+   motor aplique CSS dentro de un SVG incrustado, que es justo lo que algunos
+   no hacen. */
+.marca-logo{ display:block }
+.logo{ display:block; height:30px; width:auto }
+.logo-oscuro{ display:none }
+:root[data-tema="oscuro"] .logo-claro{ display:none }
+:root[data-tema="oscuro"] .logo-oscuro{ display:block }
+.acceso-caja .marca-logo{ margin:0 auto 22px; max-width:100% }
+.acceso-caja .logo{ height:38px; margin:0 auto; max-width:100% }
+.rail-tope .marca-logo{ margin-bottom:12px }
+.rail-tope .logo{ height:26px }
+
+@media (max-width:860px){
+  .rail-tope .marca-logo{ display:none }
+}
+
+/* ==========================================================================
+   CONMUTADOR DE TEMA
+   ========================================================================== */
+.tema{
+  display:inline-grid; place-items:center;
+  width:34px; height:34px; flex:none;
+  border-radius:var(--r-ch);
+  border:1px solid var(--linea-2); background:var(--superficie);
+  color:var(--tinta-2);
+  transition:background .12s, color .12s, border-color .12s;
+}
+.tema:hover{ background:var(--superficie-2); color:var(--tinta) }
+.tema svg{ grid-area:1/1 }
+.tema .luna{ display:none }
+:root[data-tema="oscuro"] .tema .luna{ display:block }
+:root[data-tema="oscuro"] .tema .sol{ display:none }
+
+.acceso-pie{ display:flex; justify-content:center; margin-top:16px }
+.rail-acciones{ display:flex; align-items:center; gap:10px }
+.rail-acciones button:first-child{ flex:1; text-align:left }

@@ -11,7 +11,9 @@ Esto lo descarga el navegador. Es lo único que tiene que llegar al hosting.
 
 ```
 index.html              La página
-css/estilos.css         Estilos. La paleta está en :root, arriba de todo
+css/estilos.css         Estilos. La paleta está en :root, arriba de todo,
+                        con el bloque del tema oscuro justo debajo
+marca/                  Logo vectorizado y favicon
 js/                     El programa
 datos/firebase.json     Credenciales del proyecto del cliente
 datos/usuarios.json     Solo para el modo prototipo (ver abajo)
@@ -108,9 +110,14 @@ palabra hay que escribirla.
 
 ## Varios clientes, un solo código
 
-Lo mismo para todos, y lo que cambia por cliente son tres cosas:
-`datos/firebase.json`, la paleta en `:root` y los interruptores de
-`js/config.js`.
+Lo mismo para todos, y lo que cambia por cliente son cuatro cosas:
+`datos/firebase.json`, la paleta en `:root` y su bloque `[data-tema="oscuro"]`,
+el contenido de `marca/` junto a los dos SVG incrustados en `index.html`, y los
+interruptores de `js/config.js`.
+
+Para cambiar de marca: reemplazar los dos `<svg class="logo …>` de
+`index.html` por los del cliente nuevo, con su `viewBox` y sus dos versiones,
+y ajustar `--marca` y `--tinta` en los dos temas.
 
 Cuando aparezcan funciones para un cliente puntual —fotos de producto, lector
 de código de barras—, van como módulos con un interruptor en `config.js`, no
