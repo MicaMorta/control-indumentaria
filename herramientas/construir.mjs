@@ -33,6 +33,17 @@ const aplanar = txt => txt
   .replace(/^export\s+(const|let|function|async function|class)/gm, (m, g) => g)
   .replace(/^\s*export\s*\{[^}]*\};?\s*$/gm, () => '');
 
+/* La versión está en dos lados. Si se desincronizan, la pantalla de Ajustes
+   miente sobre qué está corriendo. */
+const versionConfig = (await leer('js/config.js')).match(/VERSION\s*=\s*'([^']+)'/);
+const versionPaquete = JSON.parse(await leer('package.json')).version;
+if (versionConfig && versionConfig[1] !== versionPaquete){
+  console.error(`\n  La versión no coincide:`);
+  console.error(`    js/config.js dice  ${versionConfig[1]}`);
+  console.error(`    package.json dice  ${versionPaquete}\n`);
+  process.exit(1);
+}
+
 const html     = await leer('index.html');
 const css      = await leer('css/estilos.css');
 const usuarios = await leer('datos/usuarios.json');

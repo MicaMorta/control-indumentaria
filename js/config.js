@@ -45,6 +45,18 @@ export const RELLENO_PIN = '::stock::';
    cada visita es lo que agota la cuota gratuita de lecturas. */
 export const VENTANA_DIAS = 90;
 
+/* --------------------------------------------------------------------------
+   IDENTIFICACIÓN
+   La versión también está en package.json; el script de construcción avisa si
+   se desincronizan.
+   -------------------------------------------------------------------------- */
+export const VERSION = '1.4.0';
+
+export const DESARROLLO = {
+  por: 'Migue',
+  anio: 2026
+};
+
 export const RUTAS = {
   usuarios: 'datos/usuarios.json',   // usuarios y contraseñas (hash)
   inicial:  'datos/inicial.json',    // base de arranque

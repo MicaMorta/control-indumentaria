@@ -1,62 +1,125 @@
-import { $, esc, dia, hoyISO, bajar, avisar, confirmar, dialogo, cerrarDialogo }
-  from '../utilidades.js';
-import { datos, modo, guardar, comoJSON, reemplazar, volverAlInicial, vaciar }
-  from '../almacen.js';
-import { productosEnAlerta } from '../negocio.js';
+/* --------------------------------------------------------------------------
+   AJUSTES
+
+   Tres bloques: cómo está la aplicación, qué se puede configurar, y el
+   respaldo. Al final, la firma.
+   -------------------------------------------------------------------------- */
+
+import { $, esc, dia, hoyISO, hora, fechaLarga, bajar, avisar, confirmar,
+         dialogo, cerrarDialogo } from '../utilidades.js';
+import { datos, modo, guardar, comoJSON, reemplazar, volverAlInicial, vaciar,
+         cuandoSeGuardo, desdeCuandoHayDatos } from '../almacen.js';
+import { productosEnAlerta, pedidosPorEstado, activos, stockDe } from '../negocio.js';
+import { disponible, porQueNo } from '../firebase.js';
+import { preferencia, aplicarTema } from '../tema.js';
+import { VERSION, DESARROLLO } from '../config.js';
 import { ui, bus } from '../estado.js';
+
+const CLAVE_RESPALDO = 'indumentaria.ultimo-respaldo';
+
+const ultimoRespaldo = () => {
+  try{ return localStorage.getItem(CLAVE_RESPALDO); }catch(e){ return null; }
+};
+const anotarRespaldo = () => {
+  try{ localStorage.setItem(CLAVE_RESPALDO, hoyISO()); }catch(e){}
+};
+
+const diasDesde = iso => {
+  if (!iso) return null;
+  return Math.floor((Date.now() - new Date(iso)) / 86400000);
+};
 
 export function vistaAjustes(){
   $('#acciones').innerHTML = '';
 
-  const enNube     = modo === 'firestore';
+  const enNube = modo === 'firestore';
   const enServidor = modo === 'servidor';
+  const dias = diasDesde(ultimoRespaldo());
+  const guardado = cuandoSeGuardo();
+
+  const conexion = enNube
+    ? { clase: 'es-ingreso', texto: 'Conectado a la nube' }
+    : enServidor
+      ? { clase: 'es-ingreso', texto: 'Conectado al servidor' }
+      : { clase: 'es-pendiente', texto: 'Solo en este equipo' };
+
+  const detalle = enNube
+    ? 'Los datos están en Firestore, detrás de tu usuario. Se ven desde cualquier dispositivo y Google los respalda.'
+    : enServidor
+      ? 'Hay un servidor escuchando y cada cambio se escribe en datos/base.json.'
+      : 'No hay conexión con la base. Todo vive en el almacenamiento de este navegador y no se comparte con otros dispositivos.';
 
   $('#hoja').innerHTML = `
     <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(310px,1fr))">
 
       <section class="tarjeta">
-        <div class="tarjeta-tope"><h3>Dónde se están guardando los datos</h3></div>
+        <div class="tarjeta-tope"><h3>Estado</h3>
+          <span class="pastilla ${conexion.clase}" style="margin-left:auto">${conexion.texto}</span>
+        </div>
         <div class="tarjeta-cuerpo">
-          <p style="margin:0 0 11px;font-size:14px">
-            <span class="pastilla ${enNube || enServidor ? 'es-ingreso' : 'es-egreso'}">
-              ${enNube ? 'En la nube' : enServidor ? 'En el archivo JSON' : 'En este navegador'}</span>
-          </p>
-          <p style="font-size:13.5px;color:var(--tinta-2);margin:0;line-height:1.6">
-            ${enNube
-              ? `Los datos están en Firestore, detrás de tu usuario. Se ven desde
-                 cualquier dispositivo y Google los respalda. Para no gastar la cuota
-                 de lecturas, al abrir se traen los últimos meses; si un informe pide
-                 fechas más viejas, ese tramo se busca en el momento.`
-              : enServidor
-              ? `Hay un servidor escuchando, así que cada cambio se escribe en
-                 <code>datos/base.json</code>. Es el archivo que subís al repositorio.`
-              : `No hay servidor, así que todo vive en el almacenamiento de este navegador.
-                 Descargá el respaldo y reemplazá <code>datos/inicial.json</code> en el
-                 repositorio para conservar los cambios.`}
-          </p>
+          <dl class="estado">
+            <div><dt>Usuario</dt><dd>${esc(ui.usuario ? ui.usuario.nombre : '—')}
+              ${ui.usuario && ui.usuario.rol === 'admin'
+                ? '<span class="pastilla" style="margin-left:6px">admin</span>' : ''}</dd></div>
+            <div><dt>Último guardado</dt>
+              <dd id="estado-guardado">${guardado ? hora.format(guardado) : 'sin cambios todavía'}</dd></div>
+            <div><dt>Productos</dt>
+              <dd>${activos().length} activos ·
+                ${activos().reduce((a, p) => a + stockDe(p), 0)} unidades</dd></div>
+            <div><dt>Ventas cargadas</dt><dd>${datos.ventas.length}</dd></div>
+            <div><dt>Pedidos pendientes</dt><dd>${pedidosPorEstado('pendiente').length}</dd></div>
+            <div><dt>Por reponer</dt><dd>${productosEnAlerta().length} productos</dd></div>
+            ${enNube && desdeCuandoHayDatos() ? `
+              <div><dt>Historial en pantalla</dt>
+                <dd>desde el ${fechaLarga.format(new Date(desdeCuandoHayDatos()))}</dd></div>` : ''}
+            <div><dt>Último respaldo</dt>
+              <dd class="${dias === null || dias > 14 ? 'neg' : ''}">${
+                dias === null ? 'nunca' : dias === 0 ? 'hoy' :
+                dias === 1 ? 'ayer' : `hace ${dias} días`}</dd></div>
+          </dl>
+          <p class="firma" style="text-align:left;margin-top:12px">${esc(detalle)}</p>
+          ${!disponible() && modo === 'local' ? `
+            <p class="error-caja" style="margin-top:11px">${esc(porQueNo())}</p>` : ''}
         </div>
       </section>
 
       <section class="tarjeta">
-        <div class="tarjeta-tope"><h3>Aviso de stock bajo</h3></div>
+        <div class="tarjeta-tope"><h3>Apariencia</h3></div>
+        <div class="tarjeta-cuerpo">
+          <label class="campo"><span>Tema</span>
+            <select id="a-tema">
+              <option value="claro"   ${preferencia() === 'claro'   ? 'selected' : ''}>Claro</option>
+              <option value="oscuro"  ${preferencia() === 'oscuro'  ? 'selected' : ''}>Oscuro</option>
+              <option value="sistema" ${preferencia() === 'sistema' ? 'selected' : ''}>Seguir al sistema</option>
+            </select></label>
+          <p class="firma" style="text-align:left;margin-top:10px">
+            También se cambia con el botón de la barra lateral.</p>
+        </div>
+      </section>
+
+      <section class="tarjeta">
+        <div class="tarjeta-tope"><h3>Avisos de stock</h3></div>
         <div class="tarjeta-cuerpo">
           <label class="campo"><span>Avisame cuando un talle quede en esta cantidad o menos</span>
             <input type="number" id="a-umbral" value="${datos.umbral}" min="0" max="50"></label>
           <label class="campo" style="margin-top:12px">
             <span>Al sugerir un pedido, reponer hasta esta cantidad por talle</span>
             <input type="number" id="a-reponer" value="${datos.reponerHasta}" min="1" max="200"></label>
-          <p style="font-size:13px;color:var(--tinta-2);margin:10px 0 0">
-            Ahora hay ${productosEnAlerta().length} productos con algún talle por reponer.
-            El sistema sabe qué reponer mirando el stock; cuánto pedir sale de este número.</p>
+          <p class="firma" style="text-align:left;margin-top:10px">
+            El sistema sabe qué reponer mirando el stock; cuánto pedir sale del
+            segundo número.</p>
         </div>
       </section>
 
       <section class="tarjeta">
-        <div class="tarjeta-tope"><h3>Respaldo</h3></div>
+        <div class="tarjeta-tope"><h3>Respaldo</h3>
+          ${dias === null || dias > 14
+            ? '<span class="pastilla es-egreso" style="margin-left:auto">conviene hacerlo</span>' : ''}
+        </div>
         <div class="tarjeta-cuerpo">
           <p style="font-size:13.5px;color:var(--tinta-2);margin:0 0 13px">
-            Copia completa de productos, ventas y movimientos, en el mismo formato
-            que lee el programa. Guardala en el drive o en el mail una vez por semana.</p>
+            Copia completa de productos, ventas, movimientos y pedidos, en el mismo
+            formato que lee el programa. Guardala en el drive o en el mail.</p>
           <div style="display:flex;gap:9px;flex-wrap:wrap">
             <button class="btn primario" id="a-exportar">Descargar respaldo</button>
             <button class="btn" id="a-importar">Restaurar desde archivo</button>
@@ -75,13 +138,13 @@ export function vistaAjustes(){
             <div style="display:flex;gap:9px;flex-wrap:wrap">
               <button class="btn riesgo" id="a-vaciar">Vaciar todo</button>
             </div>
-            <p class="firma" style="margin-top:12px">
+            <p class="firma" style="text-align:left;margin-top:12px">
               La opción de volver a los datos de demostración no aparece con la base
               en la nube: reemplazaría el negocio real por productos inventados.</p>
           ` : `
             <p style="font-size:13.5px;color:var(--tinta-2);margin:0 0 13px">
-              El programa arranca con productos y ventas inventados para mostrar cómo se ve
-              en uso. Vaciá todo cuando quieras empezar con el stock real.</p>
+              El programa arranca con productos y ventas inventados para mostrar cómo
+              se ve en uso. Vaciá todo cuando quieras empezar con el stock real.</p>
             <div style="display:flex;gap:9px;flex-wrap:wrap">
               <button class="btn" id="a-resembrar">Volver a la demostración</button>
               <button class="btn riesgo" id="a-vaciar">Vaciar todo</button>
@@ -91,22 +154,21 @@ export function vistaAjustes(){
       </section>
 
       <section class="tarjeta">
-        <div class="tarjeta-tope"><h3>Qué falta para la versión final</h3></div>
-        <div class="tarjeta-cuerpo" style="font-size:13.5px;color:var(--tinta-2);line-height:1.65">
-          ${enNube
-            ? `<p style="margin:0 0 9px">El ingreso se valida contra el servidor y los datos
-               quedan detrás de las Security Rules.</p>
-               <p style="margin:0">Falta el cierre de caja diario, y definir si hace falta
-               lectura de código de barras y fotos de producto.</p>`
-            : `<p style="margin:0 0 9px">El ingreso de hoy se valida en el propio navegador
-               contra un archivo público: alcanza para que no entre cualquiera, pero no es
-               seguridad real.</p>
-               <p style="margin:0">Configurando <code>datos/firebase.json</code> pasa a
-               Firestore con autenticación real, acceso desde cualquier dispositivo y
-               respaldo automático.</p>`}
+        <div class="tarjeta-cuerpo firma-pie">
+          <span class="firma-marca">Control de stock</span>
+          <span class="firma-version">Versión ${esc(VERSION)}</span>
+          <span class="firma-autor">Desarrollado por ${esc(DESARROLLO.por)} · ${DESARROLLO.anio}</span>
         </div>
       </section>
     </div>`;
+
+  /* El último guardado se refresca solo mientras esta pantalla esté a la vista. */
+  document.addEventListener('base:guardada', refrescarGuardado);
+
+  $('#a-tema').onchange = e => {
+    aplicarTema(e.target.value);
+    avisar('Tema actualizado');
+  };
 
   $('#a-umbral').onchange = e => {
     datos.umbral = Math.max(0, parseInt(e.target.value) || 0);
@@ -119,34 +181,13 @@ export function vistaAjustes(){
   };
 
   $('#a-exportar').onclick = () => {
-    bajar(`base-${dia(hoyISO())}.json`, comoJSON(), 'application/json');
+    bajar(`respaldo-${dia(hoyISO())}.json`, comoJSON(), 'application/json');
+    anotarRespaldo();
     avisar('Respaldo descargado');
+    bus.pintar();
   };
 
-  $('#a-importar').onclick = () => {
-    const inp = document.createElement('input');
-    inp.type = 'file';
-    inp.accept = '.json,application/json';
-    inp.onchange = () => {
-      const f = inp.files[0];
-      if (!f) return;
-      const lector = new FileReader();
-      lector.onload = async () => {
-        try{
-          const d = JSON.parse(lector.result);
-          if (!Array.isArray(d.productos)) throw new Error('formato');
-          await reemplazar(d);
-          ui.carrito = [];
-          bus.pintar();
-          avisar('Respaldo restaurado');
-        }catch(e){
-          avisar('El archivo no tiene el formato del respaldo', true);
-        }
-      };
-      lector.readAsText(f);
-    };
-    inp.click();
-  };
+  $('#a-importar').onclick = restaurar;
 
   const botonResembrar = $('#a-resembrar');
   if (botonResembrar) botonResembrar.onclick = () => confirmar({
@@ -180,35 +221,67 @@ export function vistaAjustes(){
       avisar('Todo vacío');
     }
   });
+}
 
-  function vaciarConPalabra(){
-    dialogo({
-      titulo: 'Vaciar toda la base',
-      cuerpo: `
-        <p style="margin:0 0 13px;color:var(--tinta-2);line-height:1.6">
-          Esto borra <b>${datos.productos.length} productos</b>,
-          <b>${datos.ventas.length} ventas</b> y
-          <b>${datos.pedidos.length} pedidos</b> de la nube, para todos los
-          dispositivos. No se puede deshacer.</p>
-        <p style="margin:0 0 13px;color:var(--tinta-2)">
-          Descargá un respaldo antes si te importa lo que hay.</p>
-        <label class="campo"><span>Escribí BORRAR para confirmar</span>
-          <input type="text" id="v-palabra" autocapitalize="characters"
-            autocomplete="off" spellcheck="false"></label>`,
-      pie: `<button class="btn" data-cerrar>Cancelar</button>
-            <button class="btn riesgo" id="v-si" disabled>Vaciar todo</button>`,
-      alAbrir(){
-        const campo = $('#v-palabra'), boton = $('#v-si');
-        campo.oninput = () => boton.disabled = campo.value.trim().toUpperCase() !== 'BORRAR';
-        boton.onclick = async () => {
-          if (campo.value.trim().toUpperCase() !== 'BORRAR') return;
-          cerrarDialogo();
-          await vaciar();
-          ui.carrito = [];
-          bus.ir('productos');
-          avisar('Base vaciada');
-        };
+function refrescarGuardado(){
+  const el = $('#estado-guardado');
+  if (!el){ document.removeEventListener('base:guardada', refrescarGuardado); return; }
+  const g = cuandoSeGuardo();
+  if (g) el.textContent = hora.format(g);
+}
+
+function restaurar(){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.json,application/json';
+  inp.onchange = () => {
+    const f = inp.files[0];
+    if (!f) return;
+    const lector = new FileReader();
+    lector.onload = async () => {
+      try{
+        const d = JSON.parse(lector.result);
+        if (!Array.isArray(d.productos)) throw new Error('formato');
+        await reemplazar(d);
+        ui.carrito = [];
+        bus.pintar();
+        avisar('Respaldo restaurado');
+      }catch(e){
+        avisar('El archivo no tiene el formato del respaldo', true);
       }
-    });
-  }
+    };
+    lector.readAsText(f);
+  };
+  inp.click();
+}
+
+function vaciarConPalabra(){
+  dialogo({
+    titulo: 'Vaciar toda la base',
+    cuerpo: `
+      <p style="margin:0 0 13px;color:var(--tinta-2);line-height:1.6">
+        Esto borra <b>${datos.productos.length} productos</b>,
+        <b>${datos.ventas.length} ventas</b> y
+        <b>${datos.pedidos.length} pedidos</b> de la nube, para todos los
+        dispositivos. No se puede deshacer.</p>
+      <p style="margin:0 0 13px;color:var(--tinta-2)">
+        Descargá un respaldo antes si te importa lo que hay.</p>
+      <label class="campo"><span>Escribí BORRAR para confirmar</span>
+        <input type="text" id="v-palabra" autocapitalize="characters"
+          autocomplete="off" spellcheck="false"></label>`,
+    pie: `<button class="btn" data-cerrar>Cancelar</button>
+          <button class="btn riesgo" id="v-si" disabled>Vaciar todo</button>`,
+    alAbrir(){
+      const campo = $('#v-palabra'), boton = $('#v-si');
+      campo.oninput = () => boton.disabled = campo.value.trim().toUpperCase() !== 'BORRAR';
+      boton.onclick = async () => {
+        if (campo.value.trim().toUpperCase() !== 'BORRAR') return;
+        cerrarDialogo();
+        await vaciar();
+        ui.carrito = [];
+        bus.ir('productos');
+        avisar('Base vaciada');
+      };
+    }
+  });
 }

@@ -42,6 +42,13 @@
   --r:    12px;
   --r-gr: 18px;
   --sombra: 0 1px 2px rgba(18,18,18,.06), 0 8px 24px -12px rgba(18,18,18,.20);
+  /* La barra superior es translúcida con desenfoque detrás. El color tiene que
+     salir de la paleta: con un gris fijo, en tema oscuro quedaba una franja
+     clara arriba de todo. */
+  --velo:         rgba(241,241,239,.86);
+  --velo-fuerte:  rgba(18,18,18,.42);
+  --sombra-dlg:   0 24px 60px -18px rgba(18,18,18,.45);
+  --sombra-aviso: 0 14px 34px -10px rgba(18,18,18,.55);
   --rail: 236px;
 
   color-scheme: light;
@@ -81,6 +88,10 @@
   --linea-2:      #3C3C3C;
 
   --sombra: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  --velo:         rgba(14,14,14,.86);
+  --velo-fuerte:  rgba(0,0,0,.62);
+  --sombra-dlg:   0 24px 60px -18px rgba(0,0,0,.75);
+  --sombra-aviso: 0 14px 34px -10px rgba(0,0,0,.7);
   color-scheme: dark;
 }
 
@@ -179,7 +190,7 @@ h1,h2,h3{ margin:0; font-weight:600; letter-spacing:-.015em }
 .lienzo{ min-width:0; overflow-y:auto; height:100%; display:flex; flex-direction:column }
 .barra{
   position:sticky; top:0; z-index:20;
-  background:rgba(237,240,241,.9);
+  background:var(--velo);
   -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
   border-bottom:1px solid var(--linea);
   padding:16px 26px;
@@ -371,14 +382,14 @@ tbody tr:hover{ background:var(--superficie-2) }
    ========================================================================== */
 .velo{
   position:fixed; inset:0; z-index:70;
-  background:rgba(22,35,43,.42);
+  background:var(--velo-fuerte);
   display:grid; place-items:center; padding:18px;
   overflow-y:auto;
 }
 .velo[hidden]{ display:none }
 .dialogo{
   width:100%; max-width:520px; background:var(--superficie);
-  border-radius:var(--r-gr); box-shadow:0 24px 60px -18px rgba(22,35,43,.45);
+  border-radius:var(--r-gr); box-shadow:var(--sombra-dlg);
   max-height:calc(100vh - 36px); display:flex; flex-direction:column;
 }
 .dialogo-tope{ padding:18px 22px 14px; border-bottom:1px solid var(--linea) }
@@ -393,7 +404,7 @@ tbody tr:hover{ background:var(--superficie-2) }
   background:var(--tinta); color:var(--papel);
   padding:11px 18px; border-radius:999px;
   font-size:14px; font-weight:500;
-  box-shadow:0 14px 34px -10px rgba(22,35,43,.6);
+  box-shadow:var(--sombra-aviso);
   opacity:0; pointer-events:none; transition:opacity .16s, transform .16s;
   max-width:calc(100vw - 36px); text-align:center;
 }
@@ -743,3 +754,20 @@ tbody tr:hover{ background:var(--superficie-2) }
 .acceso-pie{ display:flex; justify-content:center; margin-top:16px }
 .rail-acciones{ display:flex; align-items:center; gap:10px }
 .rail-acciones button:first-child{ flex:1; text-align:left }
+
+/* ==========================================================================
+   AJUSTES — tarjeta de estado y firma
+   ========================================================================== */
+.estado{ margin:0; display:grid; gap:0 }
+.estado > div{
+  display:flex; justify-content:space-between; gap:14px; align-items:baseline;
+  padding:8px 0; border-bottom:1px solid var(--linea);
+}
+.estado > div:last-child{ border-bottom:0 }
+.estado dt{ font-size:13.5px; color:var(--tinta-2) }
+.estado dd{ margin:0; font-size:13.5px; font-weight:500; text-align:right }
+
+.firma-pie{ display:grid; gap:3px; text-align:center; padding:20px 18px }
+.firma-marca{ font-size:14px; font-weight:600; letter-spacing:-.01em }
+.firma-version{ font-size:12.5px; color:var(--tinta-2) }
+.firma-autor{ font-size:12px; color:var(--tinta-3) }

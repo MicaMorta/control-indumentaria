@@ -13,8 +13,10 @@
    se vería un destello blanco antes de pasar a oscuro. */
 (function(){
   try{
-    var g = localStorage.getItem('indumentaria.tema');
-    if(!g) g = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'oscuro' : 'claro';
+    var g = localStorage.getItem('indumentaria.tema') || 'claro';
+    if(g === 'sistema')
+      g = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'oscuro' : 'claro';
+    if(g !== 'oscuro') g = 'claro';
     document.documentElement.dataset.tema = g;
     var m = document.querySelector('meta[name="theme-color"]');
     if(m) m.content = g === 'oscuro' ? '#0E0E0E' : '#F1F1EF';

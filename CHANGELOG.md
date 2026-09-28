@@ -1,5 +1,20 @@
 # Historial de versiones
 
+## 1.4.0
+
+- El tema arranca en claro. Seguir al sistema pasa a ser una opción explícita
+  en Ajustes, junto con claro y oscuro.
+- Corregida la barra superior, que en tema oscuro quedaba con una franja clara:
+  tenía el gris de la paleta anterior escrito a mano. Todo lo translúcido y las
+  sombras pasaron a variables, y hay una prueba que falla si vuelve a aparecer
+  un color fuera de la paleta.
+- Ajustes rehecho: tarjeta de Estado con conexión, usuario, último guardado,
+  contenido y antigüedad del respaldo; tarjeta de Apariencia; y una firma al
+  pie con la versión.
+- El respaldo queda anotado: si pasaron más de catorce días, se avisa.
+- El script de construcción corta si la versión de config.js y la de
+  package.json no coinciden.
+
 ## 1.3.0
 
 Identidad Morta Sport y tema oscuro.

@@ -415,47 +415,40 @@ ganancia. Abre en Excel.
 
 ## Ajustes
 
-### Dónde se están guardando los datos
+### Estado
 
-Una etiqueta dice en cuál de los dos modos está funcionando:
+Un vistazo a cómo está la aplicación: si los datos van a la nube, al servidor
+local o solo a este equipo; con qué usuario se entró; a qué hora fue el último
+guardado; cuántos productos, ventas y pedidos pendientes hay; y cuánto hace del
+último respaldo.
 
-- **En el archivo JSON**: hay un servidor corriendo y cada cambio se escribe en
-  `datos/base.json`.
-- **En este navegador**: no hay servidor, los datos viven en el dispositivo. Es
-  el modo en que funciona publicado en GitHub Pages.
+Si pasaron más de catorce días sin respaldar, ese dato aparece en rojo y la
+tarjeta de Respaldo muestra un aviso.
 
-En el segundo caso, para conservar los cambios hay que descargar el respaldo.
+### Apariencia
 
-### Aviso de stock bajo
+Tema claro, oscuro, o seguir al del sistema. Arranca en claro. También se
+cambia con el botón de la barra lateral.
 
-**Avisame cuando un talle quede en esta cantidad o menos.** Por defecto 2. Es lo
-que decide qué aparece en "Reponer pronto" y qué se marca en amarillo en las
-listas.
+### Avisos de stock
 
-### Cantidad sugerida al pedir
+**Avisame cuando un talle quede en esta cantidad o menos**, por defecto 2. Es
+lo que decide qué aparece en "Reponer pronto".
 
-**Al sugerir un pedido, reponer hasta esta cantidad por talle.** Por defecto 6.
+**Al sugerir un pedido, reponer hasta esta cantidad por talle**, por defecto 6.
 De acá sale la cantidad que propone el botón "Sugerir del stock bajo".
-
-El sistema sabe *qué* reponer mirando el stock; *cuánto* pedir es una decisión
-del negocio, por eso es un número visible y editable.
 
 ### Respaldo
 
-**Descargar respaldo** baja un archivo JSON con todo: productos, ventas,
-movimientos y pedidos. Conviene guardarlo en el drive o mandarlo por mail una
-vez por semana.
+**Descargar respaldo** baja un archivo con todo: productos, ventas,
+movimientos y pedidos. **Restaurar desde archivo** vuelve a cargar uno.
 
-**Restaurar desde archivo** vuelve a cargar un respaldo. Reemplaza todo lo que
-haya.
+### Borrar todo
 
-### Datos de demostración
-
-**Volver a la demostración** reemplaza todo por los datos de muestra.
-**Vaciar todo** deja el sistema en blanco para empezar con el stock real.
-
-Las dos acciones piden confirmación y las dos son irreversibles si no hay
-respaldo.
+Con la base en la nube, vaciar pide escribir la palabra BORRAR y avisa cuántos
+productos, ventas y pedidos se pierden, porque borra para todos los
+dispositivos. La opción de volver a los datos de demostración no aparece en ese
+caso: reemplazaría el negocio real por productos inventados.
 
 ---
 

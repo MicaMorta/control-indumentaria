@@ -1,4 +1,4 @@
-/* Logo, favicon y conmutación de tema.
+/* Logo, favicon, tema y colores fijos.
    Requiere jsdom:  npm install --no-save jsdom
    Uso:            node herramientas/prueba-marca.mjs */
 import { JSDOM, VirtualConsole } from 'jsdom';
@@ -51,8 +51,9 @@ paso('favicon MS declarado', ()=>{
 });
 
 console.log('== tema ==');
-paso('arranca en claro por defecto', ()=>{
+paso('arranca en claro aunque el sistema esté en oscuro', ()=>{
   if(tema.temaActual()!=='claro') throw new Error('arrancó en '+tema.temaActual());
+  if(tema.preferencia()!=='claro') throw new Error('preferencia: '+tema.preferencia());
 });
 paso('el botón alterna a oscuro', ()=>{
   d.getElementById('cambiar-tema').click();
@@ -69,11 +70,21 @@ paso('el botón de la barra lateral también', ()=>{
 paso('queda recordado', ()=>{
   if(localStorage.getItem('indumentaria.tema')!=='oscuro') throw new Error('no lo guardó');
 });
+paso('se puede elegir seguir al sistema', ()=>{
+  tema.aplicarTema('sistema');
+  if(tema.preferencia()!=='sistema') throw new Error('no guardó la preferencia');
+  if(!['claro','oscuro'].includes(tema.temaActual())) throw new Error('no resolvió a ninguno');
+});
+paso('un valor raro cae en claro', ()=>{
+  tema.aplicarTema('violeta');
+  if(tema.temaActual()!=='claro') throw new Error('quedó en '+tema.temaActual());
+});
 paso('la barra del navegador acompaña', ()=>{
   const m=d.querySelector('meta[name="theme-color"]');
-  if(m.content!=='#0E0E0E') throw new Error('theme-color: '+m.content);
+  tema.aplicarTema('oscuro');
+  if(m.content!=='#0E0E0E') throw new Error('en oscuro: '+m.content);
   tema.aplicarTema('claro');
-  if(m.content!=='#F1F1EF') throw new Error('no volvió: '+m.content);
+  if(m.content!=='#F1F1EF') throw new Error('en claro: '+m.content);
 });
 paso('avisa el cambio a quien escuche', ()=>{
   let visto=null;
@@ -83,14 +94,21 @@ paso('avisa el cambio a quien escuche', ()=>{
   tema.aplicarTema('claro');
 });
 
+console.log('== colores fijos ==');
+
 console.log('== paleta ==');
 paso('no quedan colores del tema anterior', async()=>{});
 {
   const css=await readFile(RAIZ+'/css/estilos.css','utf8');
-  paso('sin verdes ni ciruelas sueltos del tema viejo', ()=>{
-    const viejos=['#0F6E6A','#0A4F4C','#E2EFED','#8E2F5B','#F6E8EE','#B07A0C'];
-    const quedan=viejos.filter(c=>css.includes(c));
-    if(quedan.length) throw new Error('quedaron: '+quedan.join(', '));
+  paso('ningún color fijo fuera de la paleta', ()=>{
+    /* Esto es lo que dejó pasar la barra superior gris en tema oscuro: la
+       prueba anterior buscaba colores concretos en vez de mirar si quedaba
+       alguno suelto. */
+    const ini=css.indexOf(':root{'), fin=css.indexOf('html{ scroll-padding');
+    const resto=css.slice(0,ini)+css.slice(fin);
+    const sueltos=(resto.match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)/g)||[])
+      .filter(c=>c!=='#fff');
+    if(sueltos.length) throw new Error('fuera de la paleta: '+[...new Set(sueltos)].join(', '));
   });
   paso('el tema oscuro define todas las variables del claro', ()=>{
     const claro=[...css.matchAll(/^\s*(--[a-z0-9-]+):/gmi)].map(m=>m[1]);
